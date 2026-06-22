@@ -1,0 +1,143 @@
+.section {
+  padding: 130px 56px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+}
+
+.inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.content {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity .75s ease, transform .75s ease;
+}
+
+.content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.formSide {}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.heading {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 54px;
+  line-height: 1.04;
+  margin: 14px 0 36px;
+  color: var(--heading);
+}
+
+.headingAccent {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.input,
+.textarea {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(236, 228, 216, .2);
+  color: var(--text);
+  font-size: 15px;
+  padding: 12px 2px;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s;
+}
+
+.textarea {
+  resize: none;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #6b635a;
+}
+
+.input:focus,
+.textarea:focus {
+  border-bottom-color: rgba(214, 162, 74, .6);
+}
+
+.submit {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding: 16px 34px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background .2s;
+}
+
+.submit:hover {
+  background: #b85a32;
+}
+
+.submitSent {
+  background: #2e6a3a;
+  pointer-events: none;
+}
+
+.mapWrap {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .07);
+  height: 480px;
+}
+
+.map {
+  border: none;
+  width: 100%;
+  height: 100%;
+  filter: invert(.92) hue-rotate(195deg) brightness(.72) saturate(.9);
+}

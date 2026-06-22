@@ -1,0 +1,131 @@
+.section {
+  position: relative;
+  padding: 130px 56px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 280px;
+  background: radial-gradient(ellipse, rgba(205, 106, 62, .05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.content {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity .75s ease, transform .75s ease;
+}
+
+.content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 64px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.heading {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 62px;
+  line-height: 1;
+  margin-top: 14px;
+  color: var(--heading);
+}
+
+.headingAccent {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.lead {
+  max-width: 340px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 3px;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  cursor: default;
+  transition: background .25s, box-shadow .25s, transform .25s;
+}
+
+.card:hover {
+  background: #1e1510;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .5);
+  transform: translateY(-3px);
+}
+
+.cardNum {
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--border-gold-med);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.cardDesc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.cardPrice {
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 13px;
+  letter-spacing: .1em;
+  color: var(--gold);
+}

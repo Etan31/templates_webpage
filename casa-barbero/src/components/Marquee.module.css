@@ -1,0 +1,33 @@
+.strip {
+  overflow: hidden;
+  background: var(--bg-marq);
+  padding: 17px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.track {
+  display: flex;
+  gap: 52px;
+  animation: marquee 32s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 52px;
+}
+
+.word {
+  font-size: 11px;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: #5e5248;
+}
+
+.dot {
+  color: var(--accent);
+  font-size: 11px;
+}

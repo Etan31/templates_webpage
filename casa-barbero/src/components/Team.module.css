@@ -1,0 +1,125 @@
+.section {
+  position: relative;
+  padding: 130px 56px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+}
+
+.glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(ellipse, rgba(214, 162, 74, .04) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.content {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity .75s ease, transform .75s ease;
+}
+
+.content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.heading {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 62px;
+  line-height: 1.04;
+  margin-top: 14px;
+  color: var(--heading);
+}
+
+.headingAccent {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.member {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.portrait {
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--border-soft);
+  transition: box-shadow .3s;
+}
+
+.portrait:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.85) saturate(.9);
+  transition: transform .5s ease;
+}
+
+.portrait:hover .photo {
+  transform: scale(1.04);
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 7, 5, .8) 0%, transparent 50%);
+}
+
+.info {}
+
+.name {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.role {
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 5px;
+}
+
+.bio {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
