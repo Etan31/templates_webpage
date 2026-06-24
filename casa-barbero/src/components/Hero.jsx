@@ -50,7 +50,7 @@ export default function Hero() {
         </p>
 
         <div {...anim('0.95s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.actions}`}>
-          <a href="#contact"  className={styles.btnPrimary}>Reserve Your Seat</a>
+          <a href="#contact"  className={styles.btnPrimary}>Book now</a>
           <a href="#services" className={styles.btnGhost}>View Services →</a>
         </div>
       </div>
