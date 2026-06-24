@@ -1,16 +1,17 @@
+import { Link } from 'react-router-dom'
 import useInView from '../hooks/useInView'
 import styles from './Pricing.module.css'
 
 const LEFT = [
-  { label: 'Classic Cut',   price: '$45' },
-  { label: 'Skin Fade',     price: '$50' },
-  { label: 'Buzz & Tidy',   price: '$30' },
+  { label: 'Regular Haircut',   price: '₱120' },
+  { label: 'Skin Fade',         price: '₱150' },
+  { label: 'High Fade',         price: '₱180' },
 ]
 
 const RIGHT = [
-  { label: 'Straight-Razor Shave', price: '$35' },
-  { label: 'Beard Sculpt',         price: '$28' },
-  { label: 'The Full Ritual',      price: '$85' },
+  { label: 'Beard Trim',        price: '₱100' },
+  { label: 'Straight Shave',    price: '₱130' },
+  { label: 'Cut + Beard Combo', price: '₱220' },
 ]
 
 function PriceRow({ label, price }) {
@@ -30,25 +31,26 @@ export default function Pricing() {
     <section id="pricing" className={styles.section} aria-labelledby="pricing-heading">
       <div className={styles.glow} aria-hidden="true" />
       <div className={styles.inner}>
-        <div
-          ref={ref}
-          className={`${styles.content} ${inView ? styles.visible : ''}`}
-        >
+        <div ref={ref} className={`${styles.content} ${inView ? styles.visible : ''}`}>
+
           <div className={styles.header}>
-            <span className={styles.eyebrow}>The Price List</span>
+            <span className={styles.eyebrow}>Transparent Pricing</span>
             <h2 id="pricing-heading" className={styles.heading}>
-              Honest <em className={styles.headingAccent}>rates.</em>
+              Honest <em className={styles.accent}>rates.</em>
             </h2>
+            <p className={styles.sub}>No hidden charges. What you see is what you pay.</p>
           </div>
 
           <div className={styles.grid}>
-            <div>{LEFT.map(item => <PriceRow key={item.label} {...item} />)}</div>
-            <div>{RIGHT.map(item => <PriceRow key={item.label} {...item} />)}</div>
+            <div className={styles.col}>{LEFT.map(item => <PriceRow key={item.label} {...item} />)}</div>
+            <div className={styles.col}>{RIGHT.map(item => <PriceRow key={item.label} {...item} />)}</div>
           </div>
 
           <div className={styles.cta}>
-            <a href="#contact" className={styles.ctaBtn}>Book an Appointment</a>
+            <Link to="/booking" className={styles.ctaBtn}>See Full Service Menu</Link>
+            <span className={styles.ctaNote}>Walk-ins welcome · Cash & GCash accepted</span>
           </div>
+
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import styles from './Hero.module.css'
 
 export default function Hero() {
@@ -20,7 +21,7 @@ export default function Hero() {
     <header id="top" className={styles.hero}>
       <img
         src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1920&q=85"
-        alt="Casa Barbero interior"
+        alt="Casa Barbero — barber at work"
         className={`${styles.bg} ${ready ? styles.bgZoom : ''}`}
       />
       <div className={styles.overlayH}    aria-hidden="true" />
@@ -28,30 +29,45 @@ export default function Hero() {
       <div className={styles.overlayGlow} aria-hidden="true" />
 
       <div className={styles.content}>
-        <div {...anim('0.15s')} aria-label="Established 1910 · 2020">
+        <div {...anim('0.15s')}>
           <div className={styles.badge}>
             <span className={styles.badgeDot} aria-hidden="true" />
-            <span className={styles.badgeText}>Established 1910 · 2020</span>
+            <span className={styles.badgeText}>Est. 2020 · Manila, Philippines</span>
           </div>
         </div>
 
         <h1 className={styles.headline}>
           <span {...anim('0.35s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.block}`}>
-            The Gentleman's
+            The Art of a
           </span>
           <em {...anim('0.55s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.headlineAccent}`}>
-            Ritual.
+            Great Cut.
           </em>
         </h1>
 
         <p {...anim('0.75s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.sub}`}>
-          Where heritage craft meets the modern cut. A curated house of barbering
-          built for the discerning — precision, ritual, and character in every detail.
+          Fresh cuts, clean fades, precise beards. Walk in and leave looking
+          your best — every single time.
         </p>
 
+        <div {...anim('0.85s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.trust}`}>
+          <span className={styles.trustItem}>
+            <span className={styles.trustDot} />
+            Walk-ins Welcome
+          </span>
+          <span className={styles.trustItem}>
+            <span className={styles.trustDot} />
+            Honest Prices
+          </span>
+          <span className={styles.trustItem}>
+            <span className={styles.trustDot} />
+            Expert Barbers
+          </span>
+        </div>
+
         <div {...anim('0.95s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.actions}`}>
-          <a href="#contact"  className={styles.btnPrimary}>Book now</a>
-          <a href="#services" className={styles.btnGhost}>View Services →</a>
+          <Link to="/booking" className={styles.btnPrimary}>View Services &amp; Prices</Link>
+          <a href="#services" className={styles.btnGhost}>See What We Do →</a>
         </div>
       </div>
 

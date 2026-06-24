@@ -1,5 +1,5 @@
 .section {
-  padding: 130px 56px;
+  padding: clamp(72px, 10vw, 120px) clamp(20px, 5vw, 56px);
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
@@ -12,7 +12,7 @@
 .content {
   opacity: 0;
   transform: translateY(32px);
-  transition: opacity .75s ease, transform .75s ease;
+  transition: opacity .8s ease, transform .8s ease;
 }
 
 .content.visible {
@@ -22,33 +22,34 @@
 
 .grid {
   display: grid;
-  grid-template-columns: .88fr 1.12fr;
-  gap: 28px;
+  grid-template-columns: .85fr 1.15fr;
+  gap: 24px;
   align-items: stretch;
 }
 
 .card {
   background: var(--bg-hours);
   border: 1px solid var(--border-gold);
-  border-radius: 4px;
-  padding: 52px 46px;
+  border-radius: 6px;
+  padding: clamp(32px, 5vw, 52px) clamp(24px, 4vw, 46px);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-card);
 }
 
 .eyebrow {
   font-size: 11px;
-  letter-spacing: .28em;
+  letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--accent);
+  margin-bottom: 12px;
 }
 
 .cardHeading {
   font-family: var(--font-serif);
-  font-size: 38px;
+  font-size: clamp(28px, 4vw, 38px);
   font-weight: 600;
   color: var(--heading);
-  margin-top: 14px;
   margin-bottom: 28px;
 }
 
@@ -60,8 +61,10 @@
 .scheduleRow {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 14px 0;
-  border-bottom: 1px solid var(--border-med);
+  border-bottom: 1px solid var(--border-soft);
+  gap: 12px;
 }
 
 .scheduleDay {
@@ -72,31 +75,32 @@
 .scheduleTime {
   font-size: 14px;
   color: var(--text);
+  font-weight: 500;
 }
 
 .scheduleClosed {
   font-size: 14px;
-  color: #6b635a;
+  color: #5e5750;
 }
 
 .visitHeading {
   font-family: var(--font-serif);
-  font-size: 30px;
+  font-size: clamp(22px, 3vw, 30px);
   font-weight: 600;
   color: var(--heading);
-  margin-top: 40px;
+  margin-top: 36px;
   margin-bottom: 14px;
 }
 
 .address {
   font-size: 14px;
-  line-height: 1.85;
+  line-height: 1.9;
   color: var(--text-muted);
   font-style: normal;
 }
 
 .address a {
-  color: var(--text-muted);
+  color: var(--text-dim);
   transition: color .2s;
 }
 
@@ -106,36 +110,50 @@
   display: inline-flex;
   align-self: flex-start;
   background: var(--gold);
-  color: #1a1008;
+  color: #140c03;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .16em;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  padding: 15px 28px;
+  padding: 14px 28px;
   border-radius: 2px;
   margin-top: 28px;
-  transition: opacity .2s;
+  box-shadow: 0 4px 16px rgba(201,146,42,.25);
+  transition: opacity .2s, transform .2s;
 }
 
-.bookBtn:hover { opacity: .88; }
+.bookBtn:hover {
+  opacity: .9;
+  transform: translateY(-1px);
+}
 
 .imgWrap {
   position: relative;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--border-soft);
-  min-height: 500px;
+  min-height: 460px;
+  box-shadow: var(--shadow-card);
 }
 
 .img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(.75) saturate(.8);
+  filter: brightness(.7) saturate(.75);
+  transition: transform .6s var(--ease);
 }
+
+.imgWrap:hover .img { transform: scale(1.03); }
 
 .imgOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(10, 7, 5, .4) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(9,6,3,.45) 0%, transparent 55%);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .imgWrap { min-height: 300px; }
 }

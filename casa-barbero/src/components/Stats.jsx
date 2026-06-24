@@ -2,10 +2,10 @@ import useInView from '../hooks/useInView'
 import styles from './Stats.module.css'
 
 const STATS = [
-  { value: '110+', label: 'Years of Craft' },
-  { value: '3',    label: 'Master Barbers' },
-  { value: '500+', label: 'Regulars' },
-  { value: '1',    label: 'Standard — Excellence' },
+  { value: '3',    label: 'Expert Barbers' },
+  { value: '15+',  label: 'Years Combined Exp.' },
+  { value: '500+', label: 'Happy Clients' },
+  { value: '₱120', label: 'Starting Price' },
 ]
 
 export default function Stats() {
@@ -19,11 +19,7 @@ export default function Stats() {
         role="list"
       >
         {STATS.map(({ value, label }, i) => (
-          <li
-            key={label}
-            className={styles.stat}
-            style={{ '--i': i }}
-          >
+          <li key={label} className={styles.stat} style={{ '--i': i }}>
             <span className={styles.value}>{value}</span>
             <span className={styles.label}>{label}</span>
           </li>

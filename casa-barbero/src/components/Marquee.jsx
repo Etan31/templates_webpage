@@ -1,8 +1,8 @@
 import styles from './Marquee.module.css'
 
 const ITEMS = [
-  'Casa Barbero', 'Cumpit', 'Amis', 'Estilo',
-  'Established 1910', "The Gentleman's Cut", 'Precision Craft',
+  'Casa Barbero', 'Manila', 'Expert Cuts', 'Skin Fades',
+  'Since 2020', 'Clean Lines', 'Walk-ins Welcome', 'Honest Prices',
 ]
 
 const DOT = <span className={styles.dot} aria-hidden="true">✦</span>

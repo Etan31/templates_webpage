@@ -3,22 +3,22 @@ import styles from './Services.module.css'
 
 const SERVICES = [
   {
-    num: '01',
-    title: 'The Classic Cut',
-    desc: 'Consultation, precision scissor work, and a hot-towel finish tailored to your features.',
-    price: 'from $45',
+    num:   '01',
+    title: 'Classic Cut',
+    desc:  'Precision scissor work shaped to your face. Includes a consultation and clean-up finish. Walk out looking sharp.',
+    tag:   'Most Popular',
   },
   {
-    num: '02',
-    title: 'Beard & Shave',
-    desc: 'Traditional straight-razor shave or sculpted beard trim, finished with warm oils and balm.',
-    price: 'from $35',
+    num:   '02',
+    title: 'Skin Fade',
+    desc:  'Seamless fade from skin to length — high, mid, or low. Crisp lines, clean taper. Done right every time.',
+    tag:   'Best Value',
   },
   {
-    num: '03',
-    title: 'The Full Ritual',
-    desc: 'Cut, shave, scalp massage and styling — the complete Casa Barbero experience, unhurried.',
-    price: 'from $85',
+    num:   '03',
+    title: 'Beard Service',
+    desc:  'Sculpted beard trim or straight-razor shave. Finished with warm oils and balm for a clean, confident look.',
+    tag:   null,
   },
 ]
 
@@ -29,32 +29,34 @@ export default function Services() {
     <section id="services" className={styles.section} aria-labelledby="services-heading">
       <div className={styles.glow} aria-hidden="true" />
       <div className={styles.inner}>
-        <div
-          ref={ref}
-          className={`${styles.content} ${inView ? styles.visible : ''}`}
-        >
+        <div ref={ref} className={`${styles.content} ${inView ? styles.visible : ''}`}>
+
           <div className={styles.header}>
             <div>
-              <span className={styles.eyebrow}>What We Provide</span>
+              <span className={styles.eyebrow}>What We Do</span>
               <h2 id="services-heading" className={styles.heading}>
-                Craft for the<br />modern <em className={styles.headingAccent}>customer.</em>
+                Cuts built for<br />the <em className={styles.accent}>modern man.</em>
               </h2>
             </div>
             <p className={styles.lead}>
-              Every service is a ritual — unhurried, precise, finished to a standard set generations ago.
+              Every service is done with full attention — no rush, no shortcuts.
+              Just a great result you can trust.
             </p>
           </div>
 
           <div className={styles.grid} role="list">
-            {SERVICES.map(({ num, title, desc, price }) => (
+            {SERVICES.map(({ num, title, desc, tag }) => (
               <article key={num} className={styles.card} role="listitem">
-                <div className={styles.cardNum} aria-hidden="true">{num}</div>
+                <div className={styles.cardTop}>
+                  <span className={styles.cardNum} aria-hidden="true">{num}</span>
+                  {tag && <span className={styles.cardTag}>{tag}</span>}
+                </div>
                 <h3 className={styles.cardTitle}>{title}</h3>
                 <p className={styles.cardDesc}>{desc}</p>
-                <span className={styles.cardPrice}>{price}</span>
               </article>
             ))}
           </div>
+
         </div>
       </div>
     </section>
