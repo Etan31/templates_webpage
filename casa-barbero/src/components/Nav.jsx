@@ -46,7 +46,7 @@ export default function Nav() {
           ))}
         </ul>
 
-        <Link to="/booking" className={styles.cta}>Book Now</Link>
+        <Link to="/appointment" className={styles.cta}>Book Now</Link>
 
         <button
           className={`${styles.hamburger} ${open ? styles.hamburgerOpen : ''}`}
@@ -98,8 +98,8 @@ export default function Nav() {
 
             <div className={styles.drawerDivider} />
 
-            <Link to="/booking" className={styles.drawerCta} onClick={close}>
-              Book Now — View Services &amp; Pricing
+            <Link to="/appointment" className={styles.drawerCta} onClick={close}>
+              Book Appointment →
             </Link>
 
             <div className={styles.drawerFooter}>

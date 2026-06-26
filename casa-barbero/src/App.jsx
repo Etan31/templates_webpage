@@ -12,7 +12,8 @@ import Pricing     from './components/Pricing'
 import Hours       from './components/Hours'
 import Contact     from './components/Contact'
 import Footer      from './components/Footer'
-import BookingPage from './pages/BookingPage'
+import BookingPage     from './pages/BookingPage'
+import AppointmentPage from './pages/AppointmentPage'
 
 function HomePage() {
   return (
@@ -40,7 +41,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/"        element={<HomePage />} />
-        <Route path="/booking" element={<BookingPage />} />
+        <Route path="/booking"     element={<BookingPage />} />
+        <Route path="/appointment" element={<AppointmentPage />} />
       </Routes>
     </BrowserRouter>
   )

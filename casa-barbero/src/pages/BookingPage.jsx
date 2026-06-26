@@ -133,16 +133,11 @@ export default function BookingPage() {
           </p>
 
           <div className={styles.ctaActions}>
-            <a href="tel:+639171234567" className={styles.ctaBtnPrimary}>
+            <Link to="/appointment" className={styles.ctaBtnPrimary}>
+              Book Online →
+            </Link>
+            <a href="tel:+639171234567" className={styles.ctaBtnGhost}>
               📞 Call Now
-            </a>
-            <a
-              href="https://wa.me/639171234567"
-              className={styles.ctaBtnGhost}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              WhatsApp Us →
             </a>
           </div>
 
