@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname   = path.dirname(fileURLToPath(import.meta.url))
 const TOKEN_PATH  = path.join(__dirname, 'token.json')
-const CREDS_PATH  = path.join(__dirname, '../token.json')
+const CREDS_PATH  = path.join(__dirname, '../client_secret.json')
 const REDIRECT    = 'http://localhost:3001/api/auth/google/callback'
 const SCOPES      = ['https://www.googleapis.com/auth/calendar']
 
