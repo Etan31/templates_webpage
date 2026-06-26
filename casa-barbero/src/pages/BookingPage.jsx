@@ -8,12 +8,12 @@ const CATEGORIES = [
     label:    'Haircut Services',
     eyebrow:  'For Every Style',
     services: [
-      { name: 'Regular Haircut',  price: '₱120', desc: 'Clean scissor cut shaped to your face. Includes neckline and ear cleanup.' },
-      { name: 'Skin Fade',        price: '₱150', desc: 'Seamless fade from bare skin to length — high, mid, or low.' },
-      { name: 'High Fade',        price: '₱180', desc: 'Bold contrast with skin at the temples. Sharp and modern.' },
-      { name: 'Textured Crop',    price: '₱150', desc: 'Short crop with a textured, messy-styled finish on top.' },
-      { name: 'Buzz Cut',         price: '₱100', desc: 'Machine cut all over. Neat, low-maintenance, done in minutes.' },
-      { name: 'Classic Undercut', price: '₱160', desc: 'Longer top with shaved or faded sides. Timeless and versatile.' },
+      { name: 'Regular Haircut',  price: '₱120', amount: 120, duration: 30, desc: 'Clean scissor cut shaped to your face. Neckline and ear cleanup included.' },
+      { name: 'Skin Fade',        price: '₱150', amount: 150, duration: 30, desc: 'Seamless fade from bare skin to length — high, mid, or low.' },
+      { name: 'High Fade',        price: '₱180', amount: 180, duration: 30, desc: 'Bold contrast with skin at the temples. Sharp and modern.' },
+      { name: 'Textured Crop',    price: '₱150', amount: 150, duration: 30, desc: 'Short crop with a textured, messy-styled finish on top.' },
+      { name: 'Buzz Cut',         price: '₱100', amount: 100, duration: 20, desc: 'Machine cut all over. Neat, low-maintenance, done in minutes.' },
+      { name: 'Classic Undercut', price: '₱160', amount: 160, duration: 30, desc: 'Longer top with shaved or faded sides. Timeless and versatile.' },
     ],
   },
   {
@@ -21,10 +21,10 @@ const CATEGORIES = [
     label:    'Beard Services',
     eyebrow:  'Sharp & Clean',
     services: [
-      { name: 'Beard Trim & Shape',   price: '₱100', desc: 'Sculpted beard with defined lines and a clean, shaped finish.' },
-      { name: 'Straight Razor Shave', price: '₱130', desc: 'Classic hot-towel straight-razor shave for a smooth, close result.' },
-      { name: 'Hot Towel Shave',      price: '₱150', desc: 'Relaxing warm-towel ritual with straight razor and finishing balm.' },
-      { name: 'Beard + Mustache',     price: '₱120', desc: 'Full beard and mustache groomed and shaped together.' },
+      { name: 'Beard Trim & Shape',   price: '₱100', amount: 100, duration: 20, desc: 'Sculpted beard with defined lines and a clean, shaped finish.' },
+      { name: 'Straight Razor Shave', price: '₱130', amount: 130, duration: 20, desc: 'Classic hot-towel straight-razor shave for a smooth, close result.' },
+      { name: 'Hot Towel Shave',      price: '₱150', amount: 150, duration: 30, desc: 'Relaxing warm-towel ritual with straight razor and finishing balm.' },
+      { name: 'Beard + Mustache',     price: '₱120', amount: 120, duration: 20, desc: 'Full beard and mustache groomed and shaped together.' },
     ],
   },
   {
@@ -32,9 +32,9 @@ const CATEGORIES = [
     label:    'Combo Deals',
     eyebrow:  'Best Value',
     services: [
-      { name: 'Haircut + Beard Trim',  price: '₱220', desc: 'Complete top-to-bottom look. Save ₱30 vs. booking separately.' },
-      { name: 'Haircut + Hot Towel',   price: '₱250', desc: 'A full grooming experience — cut, straight-razor shave, finish.' },
-      { name: 'The Full Package',      price: '₱300', desc: 'Haircut, beard service, hair wash, and styling — the works.' },
+      { name: 'Haircut + Beard Trim', price: '₱220', amount: 220, duration: 45, desc: 'Complete top-to-bottom look. Save ₱30 vs. booking separately.' },
+      { name: 'Haircut + Hot Towel',  price: '₱250', amount: 250, duration: 45, desc: 'A full grooming experience — cut, straight-razor shave, finish.' },
+      { name: 'The Full Package',     price: '₱300', amount: 300, duration: 60, desc: 'Haircut, beard service, hair wash, and styling — the works.' },
     ],
   },
   {
@@ -42,7 +42,7 @@ const CATEGORIES = [
     label:    "Kids' Services",
     eyebrow:  'Ages 12 & Below',
     services: [
-      { name: "Kids' Haircut", price: '₱100', desc: 'A clean, kid-friendly cut. Patient barbers, great results.' },
+      { name: "Kids' Haircut", price: '₱100', amount: 100, duration: 20, desc: 'A clean, kid-friendly cut. Patient barbers, great results.' },
     ],
   },
 ]
@@ -105,13 +105,19 @@ export default function BookingPage() {
             </div>
 
             <div className={styles.serviceGrid}>
-              {services.map(({ name, price, desc }) => (
+              {services.map(({ name, price, amount, duration, desc }) => (
                 <article key={name} className={styles.serviceCard}>
                   <div className={styles.serviceTop}>
                     <h3 className={styles.serviceName}>{name}</h3>
                     <span className={styles.servicePrice}>{price}</span>
                   </div>
                   <p className={styles.serviceDesc}>{desc}</p>
+                  <Link
+                    to={`/appointment?svc=${encodeURIComponent(name)}&price=${amount}&dur=${duration}`}
+                    className={styles.bookBtn}
+                  >
+                    Book This →
+                  </Link>
                 </article>
               ))}
             </div>

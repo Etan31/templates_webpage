@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import useInView from '../hooks/useInView'
 import styles from './Services.module.css'
 
@@ -5,19 +6,19 @@ const SERVICES = [
   {
     num:   '01',
     title: 'Classic Cut',
-    desc:  'Precision scissor work shaped to your face. Includes a consultation and clean-up finish. Walk out looking sharp.',
+    desc:  'Precision scissor work shaped to your face. Neckline and ear clean-up included.',
     tag:   'Most Popular',
   },
   {
     num:   '02',
     title: 'Skin Fade',
-    desc:  'Seamless fade from skin to length — high, mid, or low. Crisp lines, clean taper. Done right every time.',
+    desc:  'Seamless fade from skin to length — high, mid, or low.',
     tag:   'Best Value',
   },
   {
     num:   '03',
     title: 'Beard Service',
-    desc:  'Sculpted beard trim or straight-razor shave. Finished with warm oils and balm for a clean, confident look.',
+    desc:  'Sculpted trim or straight-razor shave. Finished with warm oil.',
     tag:   null,
   },
 ]
@@ -55,6 +56,10 @@ export default function Services() {
                 <p className={styles.cardDesc}>{desc}</p>
               </article>
             ))}
+          </div>
+
+          <div className={styles.viewAll}>
+            <Link to="/booking" className={styles.viewAllBtn}>View All Services →</Link>
           </div>
 
         </div>

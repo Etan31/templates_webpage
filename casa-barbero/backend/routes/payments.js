@@ -50,7 +50,7 @@ async function confirmBooking(bookingId, intentId) {
 // Accepts card details + booking_id. Creates a PayMongo Payment Intent,
 // attaches the card, and either confirms immediately or triggers 3DS.
 router.post('/', async (req, res) => {
-  const { booking_id, card_number, exp_month, exp_year, cvc } = req.body
+  const { booking_id, card_number, exp_month, exp_year, cvc, email } = req.body
 
   if (!booking_id || !card_number || !exp_month || !exp_year || !cvc) {
     return res.status(400).json({ error: 'booking_id, card_number, exp_month, exp_year, and cvc are required' })
@@ -85,6 +85,7 @@ router.post('/', async (req, res) => {
             billing: {
               name:  booking.customer_name,
               phone: booking.phone,
+              email: email || `${booking.id.slice(0, 8)}@casabarbero.ph`,
             },
           },
         },

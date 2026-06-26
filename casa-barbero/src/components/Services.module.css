@@ -143,6 +143,31 @@
   flex: 1;
 }
 
+.viewAll {
+  margin-top: 44px;
+  text-align: center;
+}
+
+.viewAllBtn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid rgba(201,146,42,.3);
+  padding: 13px 36px;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: border-color .2s, background .2s;
+}
+
+.viewAllBtn:hover {
+  border-color: var(--gold);
+  background: rgba(201,146,42,.07);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .grid { grid-template-columns: 1fr 1fr; }

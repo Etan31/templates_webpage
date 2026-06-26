@@ -225,6 +225,31 @@
   align-self: flex-start;
 }
 
+/* ── Selected service chip (step 2) ─────────────────── */
+.serviceChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(201, 146, 42, .06);
+  border: 1px solid rgba(201, 146, 42, .22);
+  border-radius: 4px;
+  margin-top: -8px;
+}
+
+.serviceChipName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.serviceChipMeta {
+  font-size: 12px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
 /* ── Fieldset (barber / date / time sections) ───────── */
 .fieldset {
   border: none;
