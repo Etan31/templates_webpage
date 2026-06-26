@@ -260,6 +260,68 @@
   gap: 10px;
 }
 
+.fieldLegend {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Required / Optional inline badges */
+.tagRequired {
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #e07575;
+  background: rgba(224, 117, 117, .1);
+  border: 1px solid rgba(224, 117, 117, .22);
+  border-radius: 3px;
+  padding: 1px 5px;
+  line-height: 1.6;
+}
+
+.tagOptional {
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  line-height: 1.6;
+}
+
+/* Save info checkbox row */
+.saveRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+.saveCheck {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--gold);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.saveLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
+  line-height: 1.4;
+}
+
 /* ── Barber cards ───────────────────────────────────── */
 .barberGrid {
   display: flex;
