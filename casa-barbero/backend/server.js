@@ -66,12 +66,4 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`\nCasa Barbero API  →  http://localhost:${PORT}\n`)
-  console.log('  GET  /api/health')
-  console.log('  GET  /api/available-slots?barber=john&date=YYYY-MM-DD&duration=30')
-  console.log('  POST /api/bookings')
-  console.log('  GET  /api/bookings/:id')
-  console.log('  POST /api/payments')
-  console.log('  GET  /api/payments/status/:intentId')
-  console.log('  POST /api/webhooks/paymongo')
-  console.log('\n  GET  /api/auth/google  (first-time Google Calendar setup)\n')
 })
