@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules/
 
@@ -35,3 +36,9 @@ token.json
 *.njsproj
 *.sln
 *.sw?
+=======
+.env
+node_modules
+dist
+*.log
+>>>>>>> 33eb5723486d8f2a54264cb04915d5c3983ab4a1

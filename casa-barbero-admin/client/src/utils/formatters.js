@@ -1,0 +1,19 @@
+export function titleCase(value) {
+  return String(value).replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+export function prettyDate(date, short = false) {
+  const parsed = new Date(`${date}T12:00:00`);
+  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(short ? {} : { year: "numeric" }) });
+}
+
+export function toDisplayTime(time) {
+  const [hourRaw, minute] = time.split(":").map(Number);
+  const hour = hourRaw % 12 || 12;
+  return `${hour}:${String(minute).padStart(2, "0")} ${hourRaw >= 12 ? "PM" : "AM"}`;
+}
+
+export function shortName(name) {
+  const [first, ...rest] = name.split(" ");
+  return `${first} ${rest[0]?.[0] || ""}.`;
+}

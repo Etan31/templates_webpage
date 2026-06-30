@@ -1,0 +1,84 @@
+:root {
+  --bg: #1A1A1A;
+  --auth-bg: #141414;
+  --sidebar: #1C1C1C;
+  --card: #242424;
+  --hover: #2E2E2E;
+  --border: #333333;
+  --gold: #C9A84C;
+  --text: #F5F5F0;
+  --muted: #8A8A82;
+  --success: #4CAF7D;
+  --warning: #E5A443;
+  --danger: #E05555;
+  --info: #5B9BD5;
+  --font-heading: "Playfair Display", Georgia, serif;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(201, 168, 76, 0.75);
+  outline-offset: 2px;
+}
+
+/* Shared heading font rule */
+.auth-card h1,
+.page-header h1,
+.modal-card h2,
+.slide-panel h2,
+.barber-header h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  line-height: 1.06;
+}
+
+.push-right { margin-left: auto; }
+
+.mono {
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.gold-text { color: var(--gold) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
