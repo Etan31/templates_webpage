@@ -1,5 +1,22 @@
 # Activity Log
 
+## 2026-06-30 — Client Frontend Phase 5: Live barbers in AppointmentPage
+
+Summary: AppointmentPage now fetches real barbers from the DB instead of hardcoded "john"/"patrick".
+
+**Files changed:**
+- `casa-barbero/backend/routes/catalog.js` (new) — public GET /api/catalog returning active barbers and services; no auth required; uses anon key / RLS public-read policies
+- `casa-barbero/backend/server.js` — registered /api/catalog route
+- `casa-barbero/src/pages/AppointmentPage.jsx` — removed BARBERS constant; fetches catalog on mount; allBarbers = [ANY_BARBER, ...catalog.barbers]; slot queries use real UUIDs; booking POST sends real barber name/id so barber_id_new FK now resolves correctly; slot fetch for "any" mode guards against empty catalog (waits until barbers load)
+
+**Data flow change:**
+- Before: barber_id sent as "john"/"patrick" (non-existent slugs) → barber_id_new = null
+- After: barber_id sent as UUID → barber_id_new = correct FK reference
+
+**Pending (Phase 6):**
+- Cleanup migration (005) — drop old transitional columns, rename *_new columns
+- BookingPage services still hardcoded (different from DB services) — a future content alignment task
+
 ## 2026-06-30 — Admin Frontend Phase 4: Remove casaData mock imports
 
 Summary: All admin frontend pages now consume live API data. Zero casaData.js imports remain.

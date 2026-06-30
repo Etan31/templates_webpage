@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import catalogRouter from './routes/catalog.js'
 import slotsRouter from './routes/slots.js'
 import bookingsRouter from './routes/bookings.js'
 import paymentsRouter, { webhookHandler } from './routes/payments.js'
@@ -25,6 +26,7 @@ app.post('/api/webhooks/paymongo', express.raw({ type: 'application/json' }), we
 app.use(express.json())
 
 // ── API routes ──────────────────────────────────────────
+app.use('/api/catalog',         catalogRouter)
 app.use('/api/available-slots', slotsRouter)
 app.use('/api/bookings',        bookingsRouter)
 app.use('/api/payments',        paymentsRouter)
