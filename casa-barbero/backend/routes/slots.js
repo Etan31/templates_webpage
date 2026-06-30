@@ -14,25 +14,34 @@ function minToTime(total) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
-// Build every possible start time for a given service duration.
-// Schedule: 9 AM – 7 PM with lunch off 1 PM – 2 PM.
-function generateAllSlots(durationMin) {
-  const OPEN       = 9  * 60  // 09:00
-  const CLOSE      = 19 * 60  // 19:00
-  const LUNCH_S    = 13 * 60  // 13:00
-  const LUNCH_E    = 14 * 60  // 14:00
+// Build every 15-minute start time for the day, excluding slots that would
+// run past closing or overlap the lunch break.
+// Working hours come from barber_working_hours when available; defaults to
+// shop-wide schedule (Mon–Sat 09:00–19:00, break 13:00–14:00).
+function generateAllSlots(durationMin, hours = {}) {
+  const OPEN    = (hours.open_min    ?? 9  * 60)
+  const CLOSE   = (hours.close_min   ?? 19 * 60)
+  const LUNCH_S = (hours.break_start ?? 13 * 60)
+  const LUNCH_E = (hours.break_end   ?? 14 * 60)
+  const STEP    = 15
 
   const slots = []
-  for (let t = OPEN; t + durationMin <= CLOSE; t += durationMin) {
+  for (let t = OPEN; t + durationMin <= CLOSE; t += STEP) {
     const end = t + durationMin
-    // Skip if this slot overlaps the lunch break at all
     if (t < LUNCH_E && end > LUNCH_S) continue
     slots.push(minToTime(t))
   }
   return slots
 }
 
-// GET /api/available-slots?barber=john&date=2026-06-26&duration=30
+function parseTime(t) {
+  if (!t) return null
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
+// GET /api/available-slots?barber=<id>&date=<YYYY-MM-DD>&duration=<minutes>
+// barber can be a UUID (new) or a text slug (legacy frontend)
 router.get('/', async (req, res) => {
   const { barber, date, duration } = req.query
 
@@ -41,32 +50,71 @@ router.get('/', async (req, res) => {
   }
 
   const durationMin = parseInt(duration, 10)
-  if (![20, 30, 45].includes(durationMin)) {
-    return res.status(400).json({ error: 'duration must be 20, 30, or 45' })
+  if (isNaN(durationMin) || durationMin < 10 || durationMin > 240) {
+    return res.status(400).json({ error: 'duration must be between 10 and 240 minutes' })
   }
 
-  // Fetch the barber's existing (non-cancelled) bookings on this date
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select('time_slot, duration_min')
-    .eq('barber_id', barber)
-    .eq('date', date)
-    .neq('status', 'cancelled')
+  // Try to load working hours if barber is a UUID
+  let hours = {}
+  const isUuid = /^[0-9a-f-]{36}$/i.test(barber)
+  if (isUuid) {
+    const dayOfWeek = (new Date(date).getDay() + 6) % 7 // 0=Mon…6=Sun
+    const { data: wh } = await supabase
+      .from('barber_working_hours')
+      .select('is_open, open_time, close_time, break_start, break_end')
+      .eq('barber_id', barber)
+      .eq('day_of_week', dayOfWeek)
+      .single()
 
-  if (error) return res.status(500).json({ error: error.message })
+    if (wh) {
+      if (!wh.is_open) return res.json({ slots: [], date, barber, duration: durationMin })
+      hours = {
+        open_min:    parseTime(wh.open_time),
+        close_min:   parseTime(wh.close_time),
+        break_start: parseTime(wh.break_start),
+        break_end:   parseTime(wh.break_end)
+      }
+    }
+  }
 
-  const allSlots = generateAllSlots(durationMin)
+  // Fetch non-cancelled bookings for this barber+date using BOTH old and new columns
+  const [oldQuery, newQuery] = await Promise.all([
+    // Old column style (legacy frontend sends slug barber IDs)
+    supabase.from('bookings')
+      .select('time_slot, duration_min')
+      .eq('barber_id', barber)
+      .eq('date', date)
+      .neq('status', 'cancelled'),
+    // New column style (future: frontend sends UUID barber IDs)
+    isUuid
+      ? supabase.from('bookings')
+          .select('booked_at, duration_min')
+          .eq('barber_id_new', barber)
+          .neq('booking_status', 'cancelled')
+          .gte('booked_at', `${date}T00:00:00+08:00`)
+          .lt('booked_at',  `${date}T24:00:00+08:00`)
+      : Promise.resolve({ data: [] })
+  ])
 
-  // Remove slots that conflict with an existing booking
+  // Normalize all existing bookings into { start, end } in minutes
+  const booked = []
+  for (const b of (oldQuery.data || [])) {
+    if (!b.time_slot) continue
+    const start = timeToMin(b.time_slot)
+    booked.push({ start, end: start + (b.duration_min || durationMin) })
+  }
+  for (const b of (newQuery.data || [])) {
+    if (!b.booked_at) continue
+    const d = new Date(b.booked_at)
+    const start = d.getHours() * 60 + d.getMinutes()
+    booked.push({ start, end: start + (b.duration_min || durationMin) })
+  }
+
+  const allSlots = generateAllSlots(durationMin, hours)
   const available = allSlots.filter(slot => {
-    const newStart = timeToMin(slot)
-    const newEnd   = newStart + durationMin
-
-    return !bookings.some(b => {
-      const bStart = timeToMin(b.time_slot)
-      const bEnd   = bStart + b.duration_min
-      return newStart < bEnd && newEnd > bStart
-    })
+    const s = timeToMin(slot)
+    const e = s + durationMin
+    return !booked.some(b => s < b.end && e > b.start)
   })
 
   res.json({ slots: available, date, barber, duration: durationMin })
