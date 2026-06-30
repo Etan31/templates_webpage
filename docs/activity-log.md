@@ -1,5 +1,35 @@
 # Activity Log
 
+## 2026-06-30 — Full-Stack Schema Migration (Supabase)
+
+Summary: Designed and applied complete production database schema for Casa Barbero.
+
+**Schema applied (16 tables total):**
+- New: `tag_colors`, `services`, `barbers`, `barber_services`, `barber_working_hours`,
+  `blocked_dates`, `booking_statuses`, `payment_statuses`, `payment_method_types`,
+  `transactions`, `shop_profile`, `notification_settings`, `admin_users`, `calendar_sync_log`
+- Altered: `bookings` (added new columns, kept old ones during transition),
+  `payment_logs` (added payment_method column)
+
+**Key design decisions:**
+- `bookings.status` (single field) → `booking_status` + `payment_status` (two separate FK columns)
+- `date` + `time_slot` (text) → `booked_at` (timestamptz, Asia/Manila)
+- `service_id`/`barber_id` text slugs → `service_id_new`/`barber_id_new` UUID FKs (old columns kept)
+- Admin backend will use SUPABASE_SERVICE_ROLE_KEY (bypasses RLS)
+- Client frontend uses SUPABASE_ANON_KEY (public read only for catalog tables)
+
+**Seeded:** 4 barbers, 6 services, 17 barber-service assignments, 28 working-hour rows,
+all lookup values, shop_profile, notification_settings.
+
+**Migration files:** `supabase/migrations/001–004`
+**Plan doc:** `docs/fullstack-migration-plan.md`
+
+**Next steps (not yet done):**
+1. Admin backend — replace `store.js` in-memory with Supabase queries + Supabase Auth
+2. Client backend — update routes to write to new columns (booked_at, client_name, etc.)
+3. Admin frontend — remove mock data imports, consume live API
+4. Cleanup migration (005) — drop old transitional columns once backend is updated
+
 ## 2026-06-30 — Casa Barbero: counter payment, concierge banner, staff login
 
 Summary: Customer-site changes in `casa-barbero/` per request.
