@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Eye, EyeOff } from "lucide-react";
-import { owner } from "../../../shared/data/casaData.js";
 import { AuthBrand } from "../components/auth/AuthBrand.jsx";
 import { AuthField } from "../components/auth/AuthField.jsx";
 import { api } from "../services/api.js";
@@ -19,7 +18,7 @@ export default function LoginPage({ onLogin }) {
     handleSubmit,
     watch,
     formState: { errors, isSubmitting }
-  } = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: owner.email, password: "", remember: false } });
+  } = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "", remember: false } });
 
   async function submit(values) {
     setServerError("");

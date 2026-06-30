@@ -1,24 +1,31 @@
 import "../assets/styles/barbers.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
-import { blockedTimes, formatPeso, services, tokens, workingHours } from "../../../shared/data/casaData.js";
+import { formatPeso } from "../utils/formatters.js";
 import { Badge, Modal, PageHeader, Segmented, Toggle } from "../components/ui/index.jsx";
 import { prettyDate } from "../utils/formatters.js";
 
 const BADGE_COLORS = ["#C9A84C", "#5B9BD5", "#4CAF7D", "#E05555", "#E5A443", "#9B5BA5"];
 
-export default function Barbers({ barbers, setBarbers }) {
-  const [selected, setSelected] = useState(barbers[0]?.id || "ms");
+export default function Barbers({ barbers, catalog, setBarbers }) {
+  const [selected, setSelected] = useState(barbers[0]?.id || null);
   const [tab, setTab] = useState("Working Hours");
   const [addOpen, setAddOpen] = useState(false);
   const barber = barbers.find((item) => item.id === selected) || barbers[0];
+
+  // Track selected ID when barbers load for the first time
+  useEffect(() => {
+    if (!selected && barbers[0]) setSelected(barbers[0].id);
+  }, [barbers, selected]);
 
   function handleAddBarber(data) {
     setBarbers([...barbers, data]);
     setSelected(data.id);
     setAddOpen(false);
   }
+
+  const barberBlocks = catalog.blockedTimes.filter((b) => b.barberId === barber?.id);
 
   return (
     <section>
@@ -37,11 +44,11 @@ export default function Barbers({ barbers, setBarbers }) {
         </aside>
         <section className="panel barber-detail">
           <header className="barber-header">
-            <Badge label={barber?.initials || "MS"} style={{ "--badge": barber?.color || tokens.gold }} />
+            <Badge label={barber?.initials || "?"} style={{ "--badge": barber?.color || "#C9A84C" }} />
             <div><h2>{barber?.name}</h2><p>{barber?.role}</p></div>
           </header>
           <Segmented options={["Working Hours", "Blocked Time", "Services"]} value={tab} onChange={setTab} />
-          {tab === "Working Hours" ? <WorkingHours /> : tab === "Blocked Time" ? <BlockedTime /> : <ServiceGrid />}
+          {tab === "Working Hours" ? <WorkingHours workingHours={catalog.workingHours} /> : tab === "Blocked Time" ? <BlockedTime blockedTimes={barberBlocks} /> : <ServiceGrid services={catalog.services} />}
         </section>
       </div>
       <AnimatePresence>
@@ -101,7 +108,7 @@ function AddBarberModal({ onClose, onAdd }) {
   );
 }
 
-function WorkingHours() {
+function WorkingHours({ workingHours }) {
   return (
     <div className="hours-grid">
       <header><strong>Weekly schedule</strong><button type="button">Apply Mon hours to all days</button></header>
@@ -111,7 +118,7 @@ function WorkingHours() {
   );
 }
 
-function BlockedTime() {
+function BlockedTime({ blockedTimes }) {
   return (
     <div className="block-list">
       {blockedTimes.map((block) => <article key={block.id}><div><strong>{prettyDate(block.date)}</strong><span>{block.reason} · {block.allDay ? "All day" : `${block.start}–${block.end}`}</span></div><button aria-label="Delete block"><Trash2 size={16} /></button></article>)}
@@ -120,10 +127,12 @@ function BlockedTime() {
   );
 }
 
-function ServiceGrid() {
-  const [items, setItems] = useState(services);
+function ServiceGrid({ services: initialServices }) {
+  const [items, setItems] = useState(initialServices);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", price: "", duration: "" });
+
+  useEffect(() => setItems(initialServices), [initialServices]);
 
   function handleAdd(e) {
     e.preventDefault();

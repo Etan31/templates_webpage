@@ -1,5 +1,28 @@
 # Activity Log
 
+## 2026-06-30 — Admin Frontend Phase 4: Remove casaData mock imports
+
+Summary: All admin frontend pages now consume live API data. Zero casaData.js imports remain.
+
+**Files changed:**
+- `utils/formatters.js` — added `formatPeso` (moved from casaData)
+- `lib/charts.js` — removed casaData; hardcoded GOLD color token; `barData()` now accepts barbers as 3rd param
+- `app/AdminApp.jsx` — removed all casaData seed state; added `catalog`, `dailyRevenue`, `settings`, `sync` states; loads all 6 endpoints on mount; passes `user` from session to Sidebar, SettingsPage, SyncPage
+- `pages/DashboardPage.jsx` — import only change
+- `pages/BookingsPage.jsx` — added `barbers` prop for filter dropdown; cancel/confirm now call PATCH API before updating local state
+- `pages/BarbersPage.jsx` — accepts `catalog` prop; WorkingHours/BlockedTime/ServiceGrid receive data as props; blocked times filtered by selected barber
+- `pages/PaymentsPage.jsx` — KPIs computed from live transactions; chart uses `dailyRevenue` prop with ISO→readable date format; TopServices computed from transaction data
+- `pages/SchedulePage.jsx` — BlockModal and ManualBookingPanel receive barbers/services props; ManualBookingPanel API payload now matches backend field names (clientName, bookedAt, durationMin, amount)
+- `pages/SettingsPage.jsx` — displays `settings.shopProfile` and `user` from session; form key resets on load
+- `pages/SyncPage.jsx` — displays `sync.log`, `sync.account`, formatted lastSynced timestamp
+- `pages/LoginPage.jsx` — removed owner.email pre-fill
+- `components/layout/Sidebar.jsx` — displays user name/role/initials from `user` prop
+
+**Pending (Phase 5+):**
+- Client frontend (AppointmentPage.jsx) — fetch barbers/services from live catalog API
+- Add Barber modal not yet wired to POST /api/admin/barbers
+- Cleanup migration (005) — drop old transitional columns
+
 ## 2026-06-30 — Full-Stack Schema Migration (Supabase)
 
 Summary: Designed and applied complete production database schema for Casa Barbero.
