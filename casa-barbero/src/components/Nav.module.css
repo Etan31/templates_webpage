@@ -66,13 +66,19 @@
 .link:hover { color: var(--text); }
 .link:hover::after { width: 100%; }
 
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
 .login {
   font-size: 12px;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--text-dim);
   transition: color .2s;
-  flex-shrink: 0;
 }
 
 .login:hover { color: var(--gold); }
@@ -347,8 +353,7 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .links { display: none; }
-  .login { display: none; }
-  .cta   { display: none; }
-  .hamburger { display: flex; }
+  .links      { display: none; }
+  .navActions { display: none; }
+  .hamburger  { display: flex; }
 }

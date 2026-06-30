@@ -47,8 +47,10 @@ export default function Nav() {
           ))}
         </ul>
 
-        <a href={ADMIN_LOGIN_URL} className={styles.login}>Login</a>
-        <Link to="/appointment" className={styles.cta}>Book Now</Link>
+        <div className={styles.navActions}>
+          <a href={ADMIN_LOGIN_URL} className={styles.login}>Login</a>
+          <Link to="/appointment" className={styles.cta}>Book Now</Link>
+        </div>
 
         <button
           className={`${styles.hamburger} ${open ? styles.hamburgerOpen : ''}`}
