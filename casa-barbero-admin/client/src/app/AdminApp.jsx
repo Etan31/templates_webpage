@@ -40,7 +40,7 @@ export default function AdminApp({ path, onLogout }) {
       <Sidebar path={path} onLogout={onLogout} drawer={drawer} onClose={() => setDrawer(false)} />
       <main className="main-area">
         <AnimatePresence mode="wait">
-          <motion.div key={page} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}>
+          <motion.div key={page} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}>
             {page === "dashboard" && <DashboardPage data={dashboard} bookings={bookings} />}
             {page === "schedule" && <SchedulePage bookings={bookings} barbers={barbers} setBookings={setBookings} />}
             {page === "bookings" && <BookingsPage bookings={bookings} setBookings={setBookings} />}

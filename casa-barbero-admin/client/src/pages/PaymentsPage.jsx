@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { formatPeso } from "../../../shared/data/casaData.js";
-import { Badge, Method, PageHeader, PanelTitle, Pill, Segmented } from "../components/ui/index.jsx";
+import { Badge, Kpi, Method, PageHeader, PanelTitle, Pill, Segmented } from "../components/ui/index.jsx";
 import { barData, barOptions } from "../lib/charts.js";
 import { prettyDate } from "../utils/formatters.js";
 

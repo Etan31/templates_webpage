@@ -83,6 +83,20 @@ export function Method({ method }) {
   return <span className="method"><CreditCard size={15} />{method}</span>;
 }
 
+export function Kpi({ title, value, detail, trend, tone, dot }) {
+  const showPill = trend && trend !== "amber";
+  return (
+    <article className="kpi-card">
+      <p>{dot ? <span className="amber-dot" /> : null}{title}</p>
+      <div>
+        <strong>{value}</strong>
+        {showPill ? <span className={`trend ${tone ?? ""}`}>{tone === "down" ? "↓" : "↑"} {trend.replace(/[+-]/, "")}</span> : null}
+      </div>
+      {detail ? <small>{detail}</small> : null}
+    </article>
+  );
+}
+
 export function EmptyState({ onClear }) {
   return <div className="empty-state"><Search size={42} /><h2>No bookings match your filters.</h2><button className="outline-gold" type="button" onClick={onClear}>Clear filters</button></div>;
 }
