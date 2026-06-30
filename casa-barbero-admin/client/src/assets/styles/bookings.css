@@ -5,6 +5,11 @@
   border-radius: 8px;
 }
 
+.booking-cancel-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+
 .filter-bar > button:first-child {
   display: inline-flex;
   min-height: 44px;

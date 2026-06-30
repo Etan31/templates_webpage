@@ -25,7 +25,7 @@ export default function Bookings({ bookings, setBookings }) {
       </div>
       {filtered.length ? <BookingsTable bookings={filtered} selected={selected} setSelected={setSelected} onDetail={setDetail} onCancel={setCancelTarget} /> : <EmptyState onClear={() => { setStatus("All"); setPayment("All"); }} />}
       <AnimatePresence>{selected.length ? <BulkBar count={selected.length} onClear={() => setSelected([])} /> : null}</AnimatePresence>
-      <AnimatePresence>{detail ? <BookingDetail booking={detail} onClose={() => setDetail(null)} onCancel={() => setCancelTarget(detail)} /> : null}</AnimatePresence>
+      <AnimatePresence>{detail ? <BookingDetail booking={detail} onClose={() => setDetail(null)} onCancel={() => setCancelTarget(detail)} onConfirm={() => { setBookings(bookings.map((b) => b.id === detail.id ? { ...b, status: "confirmed" } : b)); setDetail(null); }} /> : null}</AnimatePresence>
       <AnimatePresence>{cancelTarget ? <CancelModal booking={cancelTarget} onClose={() => setCancelTarget(null)} onConfirm={() => {
         setBookings(bookings.map((booking) => booking.id === cancelTarget.id ? { ...booking, status: "cancelled" } : booking));
         setCancelTarget(null);
@@ -66,7 +66,8 @@ function BookingsTable({ bookings, selected, setSelected, onDetail, onCancel }) 
   );
 }
 
-function BookingDetail({ booking, onClose, onCancel }) {
+function BookingDetail({ booking, onClose, onCancel, onConfirm }) {
+  const isRefunded = booking.paymentStatus === "refunded";
   return (
     <SlidePanel title={booking.client} eyebrow="Booking Detail" onClose={onClose} status={<Pill value={booking.status} />}>
       <dl className="detail-list">
@@ -78,8 +79,22 @@ function BookingDetail({ booking, onClose, onCancel }) {
         <div><dt>Price</dt><dd>{formatPeso(booking.price)}</dd></div>
         <div><dt>Payment</dt><dd><Pill value={booking.paymentStatus} /></dd></div>
       </dl>
-      <div className="panel-actions"><button className="ghost-button"><RefreshCw size={15} /> Reschedule</button><button className="ghost-button"><Check size={15} /> Mark Complete</button><button className="ghost-button"><List size={15} /> Message</button><button className="ghost-button"><Clock3 size={15} /> Call</button></div>
-      <button className="danger-outline bottom-cta" type="button" onClick={onCancel}>Cancel Booking</button>
+      {isRefunded ? (
+        <div className="panel-actions">
+          <button className="outline-gold" type="button" onClick={onConfirm}><Check size={15} /> Confirm Booking</button>
+          <button className="danger-outline" type="button" onClick={onCancel}>Cancel Booking</button>
+        </div>
+      ) : (
+        <>
+          <div className="panel-actions">
+            <button className="ghost-button" type="button"><RefreshCw size={15} /> Reschedule</button>
+            <button className="ghost-button" type="button"><Check size={15} /> Mark Complete</button>
+            <button className="ghost-button" type="button"><List size={15} /> Message</button>
+            <button className="ghost-button" type="button"><Clock3 size={15} /> Call</button>
+          </div>
+          <button className="danger-outline booking-cancel-btn" type="button" onClick={onCancel}>Cancel Booking</button>
+        </>
+      )}
     </SlidePanel>
   );
 }

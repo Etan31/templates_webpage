@@ -110,6 +110,10 @@
   padding: 14px 22px 24px;
 }
 
+.hours-grid .service-grid {
+  padding: 0;
+}
+
 .hours-grid header {
   display: flex;
   justify-content: space-between;
@@ -201,6 +205,45 @@
 .service-grid time {
   color: var(--muted);
   font-family: var(--font-mono);
+}
+
+.color-swatch-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.color-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), outline-color 150ms;
+}
+
+.color-swatch.active {
+  outline-color: var(--text);
+  transform: scale(1.1);
+}
+
+.add-service-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.add-service-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.service-add-btn {
+  margin-top: 16px;
 }
 
 @media (max-width: 1279px) {
