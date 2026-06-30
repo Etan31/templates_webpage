@@ -25,10 +25,33 @@ all lookup values, shop_profile, notification_settings.
 **Plan doc:** `docs/fullstack-migration-plan.md`
 
 **Next steps (not yet done):**
-1. Admin backend — replace `store.js` in-memory with Supabase queries + Supabase Auth
+1. ~~Admin backend~~ DONE (see 2026-06-30 Phase 2 entry)
 2. Client backend — update routes to write to new columns (booked_at, client_name, etc.)
 3. Admin frontend — remove mock data imports, consume live API
 4. Cleanup migration (005) — drop old transitional columns once backend is updated
+
+## 2026-06-30 — Admin Backend Phase 2: Replace mock store with Supabase
+
+Summary: All admin backend routes now hit Supabase instead of in-memory mock data.
+
+**Auth change:** Replaced hardcoded session auth (sessionService.js) with Supabase Auth.
+- Login uses raw fetch to Supabase Auth REST API (avoids service role client session contamination)
+- requireAdmin middleware validates Bearer JWT via supabase.auth.getUser(token) then checks admin_users table
+- Admin user created via `backend/scripts/create-admin.js` (one-time, run already)
+- sessionService.js deleted
+
+**Routes rewritten (all now async Supabase queries):**
+- barbers.routes.js — barbers + tag_colors + barber_services + barber_working_hours
+- bookings.routes.js — bookings JOIN services/barbers; transformBooking() normalizes shape for frontend
+- payments.routes.js — transactions table + 30-day daily revenue aggregation
+- availability.routes.js — blocked_dates + barber_working_hours; new DELETE and PATCH endpoints added
+- dashboard.routes.js + dashboardService.js — real KPIs from Supabase count/aggregate queries
+- system.routes.js — shop_profile, notification_settings, calendar_sync_log
+
+**RLS fix:** Added admin_users_read_own policy (auth.uid() = id) to allow authenticated admin user
+to read their own record after login. Service role client session contamination was the root cause.
+
+**Verified:** All endpoints return live Supabase data. Dashboard: pending=4, barbers=4, bookings=9.
 
 ## 2026-06-30 — Casa Barbero: counter payment, concierge banner, staff login
 

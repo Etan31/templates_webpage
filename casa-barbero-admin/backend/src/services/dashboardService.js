@@ -1,33 +1,119 @@
-import { getBookings, getTransactions } from "../data/store.js";
+import { supabase } from "../config/supabase.js";
 
-export function getDashboardSummary() {
-  const bookings = getBookings();
-  const transactions = getTransactions();
-  const revenue = transactions
-    .filter((item) => item.status === "paid")
-    .reduce((total, item) => total + item.amount, 0);
+function initials(name) {
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase();
+}
+
+function isoDate(d) {
+  return d.toISOString().split("T")[0];
+}
+
+function startOfDay(d) {
+  const c = new Date(d);
+  c.setHours(0, 0, 0, 0);
+  return c;
+}
+
+function startOfWeek(d) {
+  const c = new Date(d);
+  const dow = c.getDay();
+  // Monday = 0 in our schema; JS getDay() returns 0=Sun
+  c.setDate(c.getDate() - ((dow + 6) % 7));
+  c.setHours(0, 0, 0, 0);
+  return c;
+}
+
+function startOfMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+export async function getDashboardSummary() {
+  const now = new Date();
+  const todayStart = startOfDay(now).toISOString();
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+  const weekStart = startOfWeek(now).toISOString();
+  const monthStart = startOfMonth(now).toISOString();
+  const last7Start = new Date(startOfDay(now).getTime() - 6 * 86400000).toISOString();
+
+  const [
+    { count: todayBookings },
+    { count: pending },
+    { count: cancellationsMtd },
+    { data: weekTx },
+    { data: recentTx },
+    { data: upcomingData }
+  ] = await Promise.all([
+    supabase.from("bookings").select("*", { count: "exact", head: true })
+      .gte("booked_at", todayStart).lte("booked_at", todayEnd).neq("booking_status", "cancelled"),
+    supabase.from("bookings").select("*", { count: "exact", head: true })
+      .eq("booking_status", "pending"),
+    supabase.from("bookings").select("*", { count: "exact", head: true })
+      .eq("booking_status", "cancelled").gte("booked_at", monthStart),
+    supabase.from("transactions").select("amount").gte("processed_at", weekStart),
+    supabase.from("transactions").select("amount, processed_at").gte("processed_at", last7Start),
+    supabase.from("bookings")
+      .select(`
+        id, booked_at, duration_min, amount, booking_status, payment_status,
+        client_name, customer_name, notes,
+        service:service_id_new (name),
+        service_name,
+        barber:barber_id_new (name, tag_colors (hex)),
+        barber_name
+      `)
+      .gte("booked_at", now.toISOString())
+      .neq("booking_status", "cancelled")
+      .order("booked_at", { ascending: true })
+      .limit(7)
+  ]);
+
+  const weekRevenue = (weekTx || []).reduce((sum, t) => sum + t.amount, 0);
+
+  // Aggregate recentTx by day for 7-day sparkline
+  const dayMap = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dayMap[isoDate(d)] = 0;
+  }
+  for (const t of recentTx || []) {
+    const day = t.processed_at.split("T")[0];
+    if (day in dayMap) dayMap[day] += t.amount;
+  }
+  const sparkline = Object.entries(dayMap).map(([date, amount]) => {
+    const d = new Date(date);
+    return { day: d.toLocaleDateString("en-US", { weekday: "short" }), date, amount };
+  });
+
+  const upcoming = (upcomingData || []).map((b, i) => {
+    const booked = b.booked_at ? new Date(b.booked_at) : null;
+    const barberName = b.barber?.name || b.barber_name || "";
+    return {
+      id: b.id,
+      number: i + 1,
+      client: b.client_name || b.customer_name || "",
+      service: b.service?.name || b.service_name || "",
+      barber: barberName,
+      barberInitials: barberName ? initials(barberName) : "",
+      barberColor: b.barber?.tag_colors?.hex ?? "#888",
+      date: booked ? isoDate(booked) : "",
+      time: booked ? booked.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", hour12: false }) : "",
+      duration: b.duration_min,
+      price: b.amount,
+      status: b.booking_status,
+      paymentStatus: b.payment_status
+    };
+  });
 
   return {
     kpis: {
-      todayBookings: 18,
-      weekRevenue: 48650,
-      pending: bookings.filter((booking) => booking.status === "pending").length,
-      cancellationsMtd: bookings.filter((booking) => booking.status === "cancelled").length
+      todayBookings: todayBookings ?? 0,
+      weekRevenue,
+      pending: pending ?? 0,
+      cancellationsMtd: cancellationsMtd ?? 0
     },
-    revenue,
-    upcoming: bookings.slice(0, 7),
-    sparkline: [
-      { day: "Mon", date: "Jun 22", amount: 6200 },
-      { day: "Tue", date: "Jun 23", amount: 8200 },
-      { day: "Wed", date: "Jun 24", amount: 5200 },
-      { day: "Thu", date: "Jun 25", amount: 10650 },
-      { day: "Fri", date: "Jun 26", amount: 12400 },
-      { day: "Sat", date: "Jun 27", amount: 15800 },
-      { day: "Sun", date: "Jun 28", amount: 11800 }
-    ],
-    dailyRevenue: Array.from({ length: 27 }, (_, index) => ({
-      date: `Jun ${index + 1}`,
-      amount: [7200, 9100, 6500, 11800, 13200, 17200, 11250, 8700, 10500, 7000, 12600, 14200, 18400, 12900, 9400, 10800, 8200, 13500, 15800, 20500, 14600, 9800, 11400, 8700, 15100, 16600, 4800][index]
-    }))
+    revenue: weekRevenue,
+    upcoming,
+    sparkline,
+    dailyRevenue: sparkline
   };
 }
