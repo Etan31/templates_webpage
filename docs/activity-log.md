@@ -1,5 +1,27 @@
 # Activity Log
 
+## 2026-07-01 — Phase 6: Cleanup migration (bookings schema finalized)
+
+Summary: Dropped all transitional/legacy columns from `bookings`, renamed `*_new` UUID FK columns to canonical names.
+
+**SQL migration 005 applied:**
+- DROP old text columns: `service_id`, `barber_id` (were text slugs)
+- RENAME `service_id_new` → `service_id`, `barber_id_new` → `barber_id`
+- DROP legacy text columns: `customer_name`, `phone`, `service_name`, `barber_name`, `date`, `time_slot`, `status`
+
+**Final `bookings` columns:** `id`, `booked_at`, `service_id` (uuid FK), `barber_id` (uuid FK), `duration_min`, `amount`, `booking_status`, `payment_status`, `payment_method`, `client_name`, `client_phone`, `client_email`, `notes`, `google_event_id`, `created_at`
+
+**Backend code changes (removed all old column references):**
+- `bookings.js` — removed dual-write; conflict check uses `booked_at` range + `barber_id` UUID; INSERT writes clean schema only; SELECT includes service/barber join for calendar
+- `slots.js` — removed dual-mode query; now single `barber_id` (UUID) query only; returns empty for non-UUID barbers
+- `payments.js` — removed `status: 'paid'` from confirmBooking; booking fetch includes service join; dedup checks use only `payment_status`; calendar sync log uses new columns
+- `google-calendar.js` — removed legacy fallbacks; uses `booking.service?.name`, `booking.barber?.name`, `booking.client_name`, `booking.booked_at` only
+- `bookings.routes.js` (admin) — updated BOOKING_SELECT and transformBooking; POST INSERT uses `service_id`/`barber_id`
+- `payments.routes.js` (admin) — updated nested select; removed `customer_name`/`service_name`/`barber_name` fallbacks
+- `dashboardService.js` — updated upcoming bookings select and map transform
+
+**Next: End-to-end testing**
+
 ## 2026-06-30 — Client Frontend Phase 5: Live barbers in AppointmentPage
 
 Summary: AppointmentPage now fetches real barbers from the DB instead of hardcoded "john"/"patrick".
