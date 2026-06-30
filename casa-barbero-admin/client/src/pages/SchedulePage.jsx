@@ -1,3 +1,4 @@
+import "../assets/styles/schedule.css";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";

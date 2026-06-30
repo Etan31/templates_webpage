@@ -1,3 +1,4 @@
+import "../assets/styles/barbers.css";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { blockedTimes, formatPeso, services, tokens, workingHours } from "../../../shared/data/casaData.js";

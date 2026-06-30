@@ -1,3 +1,4 @@
+import "../assets/styles/sync.css";
 import { useState } from "react";
 import { Calendar, RefreshCw } from "lucide-react";
 import { owner, syncLog } from "../../../shared/data/casaData.js";

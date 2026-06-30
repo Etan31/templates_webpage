@@ -1,3 +1,4 @@
+import "../assets/styles/payments.css";
 import { useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { formatPeso } from "../../../shared/data/casaData.js";

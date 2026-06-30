@@ -1,3 +1,4 @@
+import "../assets/styles/settings.css";
 import { LogOut } from "lucide-react";
 import { owner, shopProfile } from "../../../shared/data/casaData.js";
 import { Input, PageHeader, PanelTitle } from "../components/ui/index.jsx";

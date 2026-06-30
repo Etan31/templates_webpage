@@ -1,3 +1,4 @@
+import "../assets/styles/bookings.css";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { AlertTriangle, Calendar, Check, Clock3, Download, Edit3, List, MoreHorizontal, RefreshCw, X } from "lucide-react";
