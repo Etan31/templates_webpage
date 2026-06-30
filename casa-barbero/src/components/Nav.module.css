@@ -66,6 +66,17 @@
 .link:hover { color: var(--text); }
 .link:hover::after { width: 100%; }
 
+.login {
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color .2s;
+  flex-shrink: 0;
+}
+
+.login:hover { color: var(--gold); }
+
 .cta {
   display: inline-flex;
   align-items: center;
@@ -281,6 +292,28 @@
   transform: translateY(-1px);
 }
 
+/* Drawer staff login */
+.drawerLogin {
+  display: block;
+  margin: -4px 28px 4px;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color .2s, border-color .2s;
+  flex-shrink: 0;
+}
+
+.drawerLogin:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, .2);
+}
+
 /* Drawer footer info */
 .drawerFooter {
   margin-top: auto;
@@ -315,6 +348,7 @@
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .links { display: none; }
+  .login { display: none; }
   .cta   { display: none; }
   .hamburger { display: flex; }
 }

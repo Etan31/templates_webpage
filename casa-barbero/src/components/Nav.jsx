@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import styles from './Nav.module.css'
+import { ADMIN_LOGIN_URL } from '../config'
 
 const NAV_LINKS = [
   { href: '#services', label: 'Services' },
@@ -46,6 +47,7 @@ export default function Nav() {
           ))}
         </ul>
 
+        <a href={ADMIN_LOGIN_URL} className={styles.login}>Login</a>
         <Link to="/appointment" className={styles.cta}>Book Now</Link>
 
         <button
@@ -101,6 +103,10 @@ export default function Nav() {
             <Link to="/appointment" className={styles.drawerCta} onClick={close}>
               Book Appointment →
             </Link>
+
+            <a href={ADMIN_LOGIN_URL} className={styles.drawerLogin} onClick={close}>
+              Staff Login
+            </a>
 
             <div className={styles.drawerFooter}>
               <p className={styles.drawerAddress}>

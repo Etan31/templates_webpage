@@ -5,7 +5,7 @@ Casa Barbero Admin is organized as a small full-stack workspace with a Vite/Reac
 ## Commands
 
 - `npm run dev` starts the client and API together.
-- `npm run client` starts only the Vite client on port 5173.
+- `npm run client` starts only the Vite client on port 5174.
 - `npm run server` starts only the Express API on port 4174.
 - `npm run build` creates the production client build.
 - `npm run seed` regenerates `backend/data/seed-output.json`.

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import supabase from '../database.js'
+import { createCalendarEvent } from '../google-calendar.js'
 
 const router = Router()
 
@@ -15,6 +16,7 @@ router.post('/', async (req, res) => {
     service_id, service_name,
     barber_id, barber_name,
     date, time_slot, duration_min, amount,
+    payment_method,
   } = req.body
 
   // Validate required fields
@@ -67,6 +69,16 @@ router.post('/', async (req, res) => {
     .single()
 
   if (error) return res.status(500).json({ error: error.message })
+
+  // Counter bookings skip online payment, so add the calendar event now
+  // (online bookings get theirs once payment is confirmed).
+  if (payment_method === 'counter') {
+    const eventId = await createCalendarEvent(booking)
+    if (eventId) {
+      await supabase.from('bookings').update({ google_event_id: eventId }).eq('id', booking.id)
+      booking.google_event_id = eventId
+    }
+  }
 
   res.status(201).json({ booking })
 })

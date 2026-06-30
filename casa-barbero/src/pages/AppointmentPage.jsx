@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import styles from "./AppointmentPage.module.css";
+import ConciergeBanner from "../components/ConciergeBanner";
+import { ADMIN_LOGIN_URL } from "../config";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -77,6 +79,7 @@ export default function AppointmentPage() {
   const [bookingId,   setBookingId]   = useState(null);
   const [bookingBusy, setBookingBusy] = useState(false);
   const [bookingError,setBookingError]= useState("");
+  const [payMethod,   setPayMethod]   = useState("online"); // "online" | "counter"
 
   // Step 3 — Payment
   const [cardNum,  setCardNum]  = useState("");
@@ -164,8 +167,9 @@ export default function AppointmentPage() {
     desc:     "",
   };
 
-  // ── Step 2 → 3: create booking record ──
-  async function reserveSlot() {
+  // ── Step 2 → 3 (online) or → 4 (counter): create booking record ──
+  async function reserveSlot(method) {
+    setPayMethod(method);
     setBookingBusy(true);
     setBookingError("");
 
@@ -197,12 +201,14 @@ export default function AppointmentPage() {
           time_slot:     slot,
           duration_min:  service.duration,
           amount:        service.price,
+          payment_method: method,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not reserve slot");
       setBookingId(data.booking.id);
-      setStep(3);
+      // Counter payment skips the card step and goes straight to confirmation.
+      setStep(method === "counter" ? 4 : 3);
     } catch (e) {
       setBookingError(e.message);
     } finally {
@@ -283,6 +289,9 @@ export default function AppointmentPage() {
     setCvc(c);
   }
 
+  const detailsValid =
+    name.trim() && phone.trim() && email.trim() && email.includes("@");
+
   const canPay =
     cardNum.replace(/\s/g, "").length === 16 &&
     expMonth && expYear && cvc.length >= 3 &&
@@ -300,8 +309,13 @@ export default function AppointmentPage() {
         <Link to="/" className={styles.logo}>
           Casa <span className={styles.logoAccent}>Barbero</span>
         </Link>
-        <Link to="/booking" className={styles.back}>← Change Service</Link>
+        <div className={styles.headerActions}>
+          <Link to="/booking" className={styles.back}>← Change Service</Link>
+          <a href={ADMIN_LOGIN_URL} className={styles.login}>Login</a>
+        </div>
       </header>
+
+      <ConciergeBanner />
 
       {/* Progress stepper */}
       <nav className={styles.progress} aria-label="Booking steps">
@@ -502,20 +516,29 @@ export default function AppointmentPage() {
               {bookingError && <p className={styles.errorMsg}>{bookingError}</p>}
 
               <div className={styles.navRow}>
-                <button className={styles.btnGhost} onClick={() => setStep(1)}>
+                <button
+                  className={styles.btnGhost}
+                  onClick={() => setStep(1)}
+                  disabled={bookingBusy}
+                >
                   ← Back
                 </button>
-                <button
-                  className={styles.btnPrimary}
-                  disabled={
-                    !name.trim() || !phone.trim() ||
-                    !email.trim() || !email.includes("@") ||
-                    bookingBusy
-                  }
-                  onClick={reserveSlot}
-                >
-                  {bookingBusy ? "Reserving…" : "Proceed to Payment →"}
-                </button>
+                <div className={styles.payChoice}>
+                  <button
+                    className={styles.btnGhost}
+                    disabled={!detailsValid || bookingBusy}
+                    onClick={() => reserveSlot("counter")}
+                  >
+                    {bookingBusy && payMethod === "counter" ? "Reserving…" : "Pay at the Counter"}
+                  </button>
+                  <button
+                    className={styles.btnPrimary}
+                    disabled={!detailsValid || bookingBusy}
+                    onClick={() => reserveSlot("online")}
+                  >
+                    {bookingBusy && payMethod === "online" ? "Reserving…" : "Pay Online Now →"}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -641,10 +664,14 @@ export default function AppointmentPage() {
                 ✓
               </motion.div>
 
-              <span className={styles.eyebrow}>Booking Confirmed</span>
+              <span className={styles.eyebrow}>
+                {payMethod === "counter" ? "Reservation Confirmed" : "Booking Confirmed"}
+              </span>
               <h1 className={styles.panelTitle}>You&rsquo;re all set!</h1>
               <p className={styles.panelSub}>
-                Payment received and your slot is reserved. See you soon.
+                {payMethod === "counter"
+                  ? "Your slot is reserved. Just pay at the counter when you arrive."
+                  : "Payment received and your slot is reserved. See you soon."}
               </p>
 
               <div className={styles.summaryBox}>
@@ -655,11 +682,21 @@ export default function AppointmentPage() {
                 <SummaryRow label="Time"         value={slot && fmt12h(slot)} />
                 <SummaryRow label="Customer"     value={name} />
                 <SummaryRow label="Email"        value={email} />
-                <SummaryRow label="Amount Paid"  value={`₱${service.price}`} total />
+                <SummaryRow
+                  label={payMethod === "counter" ? "Pay at Counter" : "Amount Paid"}
+                  value={`₱${service.price}`}
+                  total
+                />
               </div>
 
               <p className={styles.confirmNote}>
-                A Google Calendar event has been added to your barber&rsquo;s schedule.
+                {payMethod === "counter" ? (
+                  <>
+                    Please settle <strong>₱{service.price}</strong> at the counter — cash or GCash accepted.
+                  </>
+                ) : (
+                  <>A Google Calendar event has been added to your barber&rsquo;s schedule.</>
+                )}
                 <br />
                 Walk in at: <strong>123 Rizal St., Poblacion, Manila</strong>
               </p>
