@@ -55,21 +55,13 @@ export async function createCalendarEvent(booking) {
   const calendar   = google.calendar({ version: 'v3', auth })
   const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary'
 
-  // Support both legacy columns and new schema columns
-  const clientName  = booking.customer_name  || booking.client_name  || 'Unknown'
-  const clientPhone = booking.phone          || booking.client_phone  || ''
-  const svcName     = booking.service_name   || 'Service'
-  const barberName  = booking.barber_name    || 'Staff'
+  const clientName  = booking.client_name   || 'Unknown'
+  const clientPhone = booking.client_phone  || ''
+  const svcName     = booking.service?.name || 'Service'
+  const barberName  = booking.barber?.name  || 'Staff'
 
-  // Parse start time from booked_at (new) or date+time_slot (legacy)
-  let start
-  if (booking.booked_at) {
-    start = new Date(booking.booked_at)
-  } else {
-    const [h, m] = booking.time_slot.split(':').map(Number)
-    start = new Date(`${booking.date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00+08:00`)
-  }
-  const end = new Date(start.getTime() + booking.duration_min * 60_000)
+  const start = new Date(booking.booked_at)
+  const end   = new Date(start.getTime() + booking.duration_min * 60_000)
 
   const event = {
     summary:     `${svcName} — ${clientName}`,

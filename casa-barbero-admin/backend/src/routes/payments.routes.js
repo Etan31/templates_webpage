@@ -18,11 +18,9 @@ paymentsRoutes.get("/payments", requireAdmin, async (_req, res) => {
       .select(`
         id, amount, payment_method, processed_at, receipt_url, note,
         booking:booking_id (
-          id, client_name, customer_name,
-          service:service_id_new (name),
-          service_name,
-          barber:barber_id_new (name, tag_colors (hex)),
-          barber_name
+          id, client_name,
+          service:service_id (name),
+          barber:barber_id (name, tag_colors (hex))
         )
       `)
       .order("processed_at", { ascending: false }),
@@ -36,12 +34,12 @@ paymentsRoutes.get("/payments", requireAdmin, async (_req, res) => {
 
   const transactions = (txData || []).map((t) => {
     const b = t.booking;
-    const barberName = b?.barber?.name || b?.barber_name || "";
+    const barberName = b?.barber?.name || "";
     return {
       id: t.id,
       bookingId: t.booking_id,
-      client: b?.client_name || b?.customer_name || "",
-      service: b?.service?.name || b?.service_name || "",
+      client: b?.client_name || "",
+      service: b?.service?.name || "",
       barber: barberName,
       barberInitials: barberName ? initials(barberName) : "",
       barberColor: b?.barber?.tag_colors?.hex ?? "#888",

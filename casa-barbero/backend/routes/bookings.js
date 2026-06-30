@@ -9,80 +9,77 @@ function timeToMin(t) {
   return h * 60 + m
 }
 
-// POST /api/bookings — reserve a slot (status = "pending" until payment)
+// POST /api/bookings — reserve a slot (booking_status = "pending" until payment)
 router.post('/', async (req, res) => {
   const {
     customer_name, phone,
-    service_id, service_name,
+    service_name,
     barber_id, barber_name,
     date, time_slot, duration_min, amount,
     payment_method,
   } = req.body
 
-  const missing = ['customer_name', 'phone', 'service_id', 'service_name',
-                   'barber_id', 'barber_name', 'date', 'time_slot', 'duration_min', 'amount']
+  const missing = ['customer_name', 'phone', 'service_name',
+                   'barber_name', 'date', 'time_slot', 'duration_min', 'amount']
     .filter(k => !req.body[k])
   if (missing.length) {
     return res.status(400).json({ error: `Missing: ${missing.join(', ')}` })
   }
 
-  // Slot conflict check — uses old columns (supports legacy slug-based barber IDs)
-  const { data: existing } = await supabase
-    .from('bookings')
-    .select('time_slot, duration_min')
-    .eq('barber_id', barber_id)
-    .eq('date', date)
-    .neq('status', 'cancelled')
+  const isUuidBarber = /^[0-9a-f-]{36}$/i.test(barber_id)
 
-  const newStart = timeToMin(time_slot)
-  const newEnd   = newStart + parseInt(duration_min, 10)
+  // Slot conflict check against new schema columns
+  if (isUuidBarber) {
+    const { data: existing } = await supabase
+      .from('bookings')
+      .select('booked_at, duration_min')
+      .eq('barber_id', barber_id)
+      .neq('booking_status', 'cancelled')
+      .gte('booked_at', `${date}T00:00:00+08:00`)
+      .lt('booked_at',  `${date}T24:00:00+08:00`)
 
-  const conflict = (existing || []).some(b => {
-    const bStart = timeToMin(b.time_slot)
-    const bEnd   = bStart + b.duration_min
-    return newStart < bEnd && newEnd > bStart
-  })
+    const newStart = timeToMin(time_slot)
+    const newEnd   = newStart + parseInt(duration_min, 10)
 
-  if (conflict) {
-    return res.status(409).json({ error: 'This slot was just taken. Please choose a different time.' })
+    const conflict = (existing || []).some(b => {
+      if (!b.booked_at) return false
+      const d = new Date(b.booked_at)
+      const bStart = d.getHours() * 60 + d.getMinutes()
+      const bEnd   = bStart + (b.duration_min || parseInt(duration_min, 10))
+      return newStart < bEnd && newEnd > bStart
+    })
+
+    if (conflict) {
+      return res.status(409).json({ error: 'This slot was just taken. Please choose a different time.' })
+    }
   }
 
-  // Best-effort: look up UUID FK refs in new tables by name
+  // Resolve UUID FKs: service by name; barber by UUID or name fallback
   const [svcResult, barberResult] = await Promise.all([
     supabase.from('services').select('id').eq('name', service_name).maybeSingle(),
-    supabase.from('barbers').select('id').ilike('name', barber_name).eq('is_active', true).maybeSingle()
+    isUuidBarber
+      ? supabase.from('barbers').select('id').eq('id', barber_id).eq('is_active', true).single()
+      : supabase.from('barbers').select('id').ilike('name', barber_name).eq('is_active', true).maybeSingle()
   ])
 
-  // Explicit PH timezone so booked_at is stored as correct UTC
   const booked_at = `${date}T${time_slot}:00+08:00`
   const isCounter = payment_method === 'counter'
 
   const { data: booking, error } = await supabase
     .from('bookings')
     .insert({
-      // Legacy columns — kept during transition
-      customer_name,
-      phone,
-      service_id,
-      service_name,
-      barber_id,
-      barber_name,
-      date,
-      time_slot,
-      duration_min: parseInt(duration_min, 10),
-      amount:       parseInt(amount, 10),
-      status:       'pending',
-      // New columns
-      client_name:     customer_name,
-      client_phone:    phone,
+      client_name:    customer_name,
+      client_phone:   phone,
       booked_at,
-      service_id_new:  svcResult.data?.id  ?? null,
-      barber_id_new:   barberResult.data?.id ?? null,
-      booking_status:  'pending',
-      payment_status:  'unpaid',
-      payment_method:  isCounter ? 'counter' : null,
+      service_id:     svcResult.data?.id   ?? null,
+      barber_id:      barberResult.data?.id ?? null,
+      duration_min:   parseInt(duration_min, 10),
+      amount:         parseInt(amount, 10),
+      booking_status: 'pending',
+      payment_status: 'unpaid',
+      payment_method: isCounter ? 'counter' : null,
     })
-    .select()
+    .select('*, service:service_id (name), barber:barber_id (name)')
     .single()
 
   if (error) return res.status(500).json({ error: error.message })
@@ -97,7 +94,7 @@ router.post('/', async (req, res) => {
     await supabase.from('calendar_sync_log').insert({
       booking_id:  booking.id,
       event_type:  'booking',
-      description: `Added ${service_name} — ${customer_name} to calendar`,
+      description: `Added ${booking.service?.name || service_name} — ${customer_name} to calendar`,
       success:     eventId !== null
     })
   }
@@ -109,7 +106,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { data: booking, error } = await supabase
     .from('bookings')
-    .select('*, payment_logs(*)')
+    .select('*, payment_logs(*), service:service_id (name), barber:barber_id (name)')
     .eq('id', req.params.id)
     .single()
 

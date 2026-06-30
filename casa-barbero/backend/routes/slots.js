@@ -16,8 +16,7 @@ function minToTime(total) {
 
 // Build every 15-minute start time for the day, excluding slots that would
 // run past closing or overlap the lunch break.
-// Working hours come from barber_working_hours when available; defaults to
-// shop-wide schedule (Mon–Sat 09:00–19:00, break 13:00–14:00).
+// Working hours come from barber_working_hours; defaults to 09:00–19:00 with 13:00–14:00 break.
 function generateAllSlots(durationMin, hours = {}) {
   const OPEN    = (hours.open_min    ?? 9  * 60)
   const CLOSE   = (hours.close_min   ?? 19 * 60)
@@ -40,8 +39,7 @@ function parseTime(t) {
   return h * 60 + m
 }
 
-// GET /api/available-slots?barber=<id>&date=<YYYY-MM-DD>&duration=<minutes>
-// barber can be a UUID (new) or a text slug (legacy frontend)
+// GET /api/available-slots?barber=<UUID>&date=<YYYY-MM-DD>&duration=<minutes>
 router.get('/', async (req, res) => {
   const { barber, date, duration } = req.query
 
@@ -54,61 +52,45 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'duration must be between 10 and 240 minutes' })
   }
 
-  // Try to load working hours if barber is a UUID
-  let hours = {}
-  const isUuid = /^[0-9a-f-]{36}$/i.test(barber)
-  if (isUuid) {
-    const dayOfWeek = (new Date(date).getDay() + 6) % 7 // 0=Mon…6=Sun
-    const { data: wh } = await supabase
-      .from('barber_working_hours')
-      .select('is_open, open_time, close_time, break_start, break_end')
-      .eq('barber_id', barber)
-      .eq('day_of_week', dayOfWeek)
-      .single()
+  // Non-UUID barber IDs are no longer supported; return empty rather than error
+  if (!/^[0-9a-f-]{36}$/i.test(barber)) {
+    return res.json({ slots: [], date, barber, duration: durationMin })
+  }
 
-    if (wh) {
-      if (!wh.is_open) return res.json({ slots: [], date, barber, duration: durationMin })
-      hours = {
-        open_min:    parseTime(wh.open_time),
-        close_min:   parseTime(wh.close_time),
-        break_start: parseTime(wh.break_start),
-        break_end:   parseTime(wh.break_end)
-      }
+  // Load barber's working hours for the requested day
+  let hours = {}
+  const dayOfWeek = (new Date(date).getDay() + 6) % 7 // 0=Mon…6=Sun
+  const { data: wh } = await supabase
+    .from('barber_working_hours')
+    .select('is_open, open_time, close_time, break_start, break_end')
+    .eq('barber_id', barber)
+    .eq('day_of_week', dayOfWeek)
+    .single()
+
+  if (wh) {
+    if (!wh.is_open) return res.json({ slots: [], date, barber, duration: durationMin })
+    hours = {
+      open_min:    parseTime(wh.open_time),
+      close_min:   parseTime(wh.close_time),
+      break_start: parseTime(wh.break_start),
+      break_end:   parseTime(wh.break_end)
     }
   }
 
-  // Fetch non-cancelled bookings for this barber+date using BOTH old and new columns
-  const [oldQuery, newQuery] = await Promise.all([
-    // Old column style (legacy frontend sends slug barber IDs)
-    supabase.from('bookings')
-      .select('time_slot, duration_min')
-      .eq('barber_id', barber)
-      .eq('date', date)
-      .neq('status', 'cancelled'),
-    // New column style (future: frontend sends UUID barber IDs)
-    isUuid
-      ? supabase.from('bookings')
-          .select('booked_at, duration_min')
-          .eq('barber_id_new', barber)
-          .neq('booking_status', 'cancelled')
-          .gte('booked_at', `${date}T00:00:00+08:00`)
-          .lt('booked_at',  `${date}T24:00:00+08:00`)
-      : Promise.resolve({ data: [] })
-  ])
+  // Fetch non-cancelled bookings for this barber+date
+  const { data: existing } = await supabase
+    .from('bookings')
+    .select('booked_at, duration_min')
+    .eq('barber_id', barber)
+    .neq('booking_status', 'cancelled')
+    .gte('booked_at', `${date}T00:00:00+08:00`)
+    .lt('booked_at',  `${date}T24:00:00+08:00`)
 
-  // Normalize all existing bookings into { start, end } in minutes
-  const booked = []
-  for (const b of (oldQuery.data || [])) {
-    if (!b.time_slot) continue
-    const start = timeToMin(b.time_slot)
-    booked.push({ start, end: start + (b.duration_min || durationMin) })
-  }
-  for (const b of (newQuery.data || [])) {
-    if (!b.booked_at) continue
+  const booked = (existing || []).map(b => {
     const d = new Date(b.booked_at)
     const start = d.getHours() * 60 + d.getMinutes()
-    booked.push({ start, end: start + (b.duration_min || durationMin) })
-  }
+    return { start, end: start + (b.duration_min || durationMin) }
+  })
 
   const allSlots = generateAllSlots(durationMin, hours)
   const available = allSlots.filter(slot => {

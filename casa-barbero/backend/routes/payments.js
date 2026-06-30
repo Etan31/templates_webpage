@@ -30,10 +30,9 @@ async function pmFetch(endpoint, options = {}) {
 // Confirm a paid booking: update status columns, create transaction, add calendar event
 async function confirmBooking(bookingId, intentId) {
   await supabase.from('bookings').update({
-    status:         'paid',       // legacy column
-    booking_status: 'confirmed',  // new column
-    payment_status: 'paid',       // new column
-    payment_method: 'card',       // new column
+    booking_status: 'confirmed',
+    payment_status: 'paid',
+    payment_method: 'card',
   }).eq('id', bookingId)
 
   await supabase.from('payment_logs')
@@ -41,10 +40,12 @@ async function confirmBooking(bookingId, intentId) {
     .eq('paymongo_intent_id', intentId)
 
   const { data: booking } = await supabase
-    .from('bookings').select('*').eq('id', bookingId).single()
+    .from('bookings')
+    .select('*, service:service_id (name), barber:barber_id (name)')
+    .eq('id', bookingId)
+    .single()
 
   if (booking) {
-    // Record confirmed payment in transactions table
     await supabase.from('transactions').insert({
       booking_id:     bookingId,
       payment_method: 'card',
@@ -52,7 +53,6 @@ async function confirmBooking(bookingId, intentId) {
       processed_at:   new Date().toISOString(),
     })
 
-    // Create Google Calendar event (online payments confirmed here)
     const eventId = await createCalendarEvent(booking)
     if (eventId) {
       await supabase.from('bookings').update({ google_event_id: eventId }).eq('id', bookingId)
@@ -60,7 +60,7 @@ async function confirmBooking(bookingId, intentId) {
     await supabase.from('calendar_sync_log').insert({
       booking_id:  bookingId,
       event_type:  'booking',
-      description: `Added ${booking.service_name || ''} — ${booking.customer_name || booking.client_name || ''} to calendar`,
+      description: `Added ${booking.service?.name || ''} — ${booking.client_name || ''} to calendar`,
       success:     eventId !== null,
     })
   }
@@ -75,10 +75,13 @@ router.post('/', async (req, res) => {
   }
 
   const { data: booking, error: bErr } = await supabase
-    .from('bookings').select('*').eq('id', booking_id).single()
+    .from('bookings')
+    .select('*, service:service_id (name)')
+    .eq('id', booking_id)
+    .single()
 
   if (bErr || !booking) return res.status(404).json({ error: 'Booking not found' })
-  if (booking.status === 'paid' || booking.payment_status === 'paid') {
+  if (booking.payment_status === 'paid') {
     return res.status(400).json({ error: 'This booking is already paid' })
   }
 
@@ -101,8 +104,8 @@ router.post('/', async (req, res) => {
               cvc:         String(cvc),
             },
             billing: {
-              name:  booking.customer_name || booking.client_name,
-              phone: booking.phone || booking.client_phone,
+              name:  booking.client_name,
+              phone: booking.client_phone,
               email: email || `${booking.id.slice(0, 8)}@casabarbero.ph`,
             },
           },
@@ -122,7 +125,7 @@ router.post('/', async (req, res) => {
             payment_method_options: { card: { request_three_d_secure: 'any' } },
             currency:               'PHP',
             capture_type:           'automatic',
-            description:            `${booking.service_name || 'Service'} — Casa Barbero (${booking.id.slice(0, 8)})`,
+            description:            `${booking.service?.name || 'Service'} — Casa Barbero (${booking.id.slice(0, 8)})`,
           },
         },
       }),
@@ -191,8 +194,8 @@ router.get('/status/:intentId', async (req, res) => {
 
       if (logs?.[0]?.booking_id) {
         const { data: bk } = await supabase
-          .from('bookings').select('status, payment_status').eq('id', logs[0].booking_id).single()
-        if (bk && bk.status !== 'paid' && bk.payment_status !== 'paid') {
+          .from('bookings').select('payment_status').eq('id', logs[0].booking_id).single()
+        if (bk && bk.payment_status !== 'paid') {
           await confirmBooking(logs[0].booking_id, req.params.intentId)
         }
       }
@@ -224,8 +227,8 @@ export async function webhookHandler(req, res) {
 
         if (logs?.[0]?.booking_id) {
           const { data: bk } = await supabase
-            .from('bookings').select('status, payment_status').eq('id', logs[0].booking_id).single()
-          if (bk && bk.status !== 'paid' && bk.payment_status !== 'paid') {
+            .from('bookings').select('payment_status').eq('id', logs[0].booking_id).single()
+          if (bk && bk.payment_status !== 'paid') {
             await confirmBooking(logs[0].booking_id, intentId)
           }
         }

@@ -13,20 +13,20 @@ function transformBooking(b, index) {
   return {
     id: b.id,
     number: index + 1,
-    client: b.client_name || b.customer_name || "",
-    phone: b.client_phone || b.phone || "",
-    serviceId: b.service_id_new || b.service_id || null,
-    service: b.service?.name || b.service_name || "",
-    barberId: b.barber_id_new || b.barber_id || null,
-    barber: b.barber?.name || b.barber_name || "",
+    client: b.client_name || "",
+    phone: b.client_phone || "",
+    serviceId: b.service?.id || null,
+    service: b.service?.name || "",
+    barberId: b.barber?.id || null,
+    barber: b.barber?.name || "",
     barberInitials: b.barber?.name ? initials(b.barber.name) : "",
     barberColor: b.barber?.tag_colors?.hex ?? "#888",
-    date: booked ? booked.toISOString().split("T")[0] : b.date,
-    time: booked ? booked.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", hour12: false }) : b.time_slot,
+    date: booked ? booked.toISOString().split("T")[0] : "",
+    time: booked ? booked.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", hour12: false }) : "",
     duration: b.duration_min,
     price: b.amount,
-    paymentStatus: b.payment_status || (b.status === "paid" ? "paid" : "unpaid"),
-    status: b.booking_status || b.status || "pending",
+    paymentStatus: b.payment_status || "unpaid",
+    status: b.booking_status || "pending",
     paymentMethod: b.payment_method || null,
     notes: b.notes || ""
   };
@@ -35,9 +35,8 @@ function transformBooking(b, index) {
 const BOOKING_SELECT = `
   id, booked_at, duration_min, amount, booking_status, payment_status, payment_method,
   client_name, client_phone, notes, created_at,
-  customer_name, phone, service_id, service_name, barber_id, barber_name, date, time_slot, status,
-  service:service_id_new (id, name),
-  barber:barber_id_new (id, name, tag_colors (hex))
+  service:service_id (id, name),
+  barber:barber_id (id, name, tag_colors (hex))
 `;
 
 bookingsRoutes.get("/bookings", requireAdmin, async (_req, res) => {
@@ -62,8 +61,8 @@ bookingsRoutes.post("/bookings", requireAdmin, async (req, res) => {
       client_name: clientName,
       client_phone: phone,
       client_email: clientEmail || null,
-      service_id_new: serviceId,
-      barber_id_new: barberId,
+      service_id: serviceId,
+      barber_id: barberId,
       booked_at: bookedAt,
       duration_min: durationMin,
       amount,

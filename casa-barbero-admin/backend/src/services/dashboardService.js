@@ -54,11 +54,9 @@ export async function getDashboardSummary() {
     supabase.from("bookings")
       .select(`
         id, booked_at, duration_min, amount, booking_status, payment_status,
-        client_name, customer_name, notes,
-        service:service_id_new (name),
-        service_name,
-        barber:barber_id_new (name, tag_colors (hex)),
-        barber_name
+        client_name, notes,
+        service:service_id (name),
+        barber:barber_id (name, tag_colors (hex))
       `)
       .gte("booked_at", now.toISOString())
       .neq("booking_status", "cancelled")
@@ -86,12 +84,12 @@ export async function getDashboardSummary() {
 
   const upcoming = (upcomingData || []).map((b, i) => {
     const booked = b.booked_at ? new Date(b.booked_at) : null;
-    const barberName = b.barber?.name || b.barber_name || "";
+    const barberName = b.barber?.name || "";
     return {
       id: b.id,
       number: i + 1,
-      client: b.client_name || b.customer_name || "",
-      service: b.service?.name || b.service_name || "",
+      client: b.client_name || "",
+      service: b.service?.name || "",
       barber: barberName,
       barberInitials: barberName ? initials(barberName) : "",
       barberColor: b.barber?.tag_colors?.hex ?? "#888",
