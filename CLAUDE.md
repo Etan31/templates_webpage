@@ -51,6 +51,72 @@ Guidance for Claude Code working with code in this repository.
 - CSS: use CSS modules or styled-components; avoid inline styles.
 - No unused imports or dead code.
 
+### Error Pages & Status Codes
+
+Error pages are implemented for both customer (`casa-barbero`) and admin (`casa-barbero-admin`) sites. All 8 status codes are ready to use — no additional implementation needed.
+
+**Customer site errors** (`src/pages/errors/`):
+- Import: `import ErrorPage from './pages/errors/ErrorPage'`
+- Or use specific wrappers: `NotFound`, `ServerError`, `AuthError`
+- Usage: `<ErrorPage code={404} />` or `<ServerError code={500} />`
+- Styling: CSS Modules (`ErrorPage.module.css`)
+- Animation: `motion/react` stagger entrance + breathing icon glow
+
+**Admin site errors** (`client/src/pages/errors/`):
+- Import: `import ErrorPage from '../pages/errors/ErrorPage'`
+- Or use specific wrappers: `NotFound`, `ServerError`, `AuthError`
+- Usage: `<ErrorPage code={404} />` — pass `code` prop to render any status
+- Styling: Global CSS (`errors.css`)
+- Animation: `framer-motion` stagger entrance + breathing icon glow
+
+**Implemented status codes (8 total):**
+
+| Code | Name | Color | Use Case |
+|------|------|-------|----------|
+| 400 | Bad Request | Gold | Invalid form input, malformed requests |
+| 401 | Unauthorized | Blue | Missing/expired session (render inline when auth fails) |
+| 403 | Forbidden | Blue | User lacks permission (render inline when permission check fails) |
+| 404 | Not Found | Gold | Route doesn't exist (auto-renders via catch-all route) |
+| 500 | Server Error | Red | Unhandled exceptions (catch in error boundary) |
+| 502 | Bad Gateway | Red | Upstream service down (API failure handler) |
+| 503 | Service Unavailable | Red | Maintenance mode (graceful shutdown) |
+| 504 | Gateway Timeout | Red | Request timeout (API response timeout) |
+
+**Design specs** (shared across both sites):
+- Full-viewport dark page (`#141414` bg) with grain texture
+- Ghost watermark of code number (0.027 opacity, Playfair/Cormorant serif)
+- Top-left: brand wordmark (B glyph + logotype)
+- Top-right: status badge (e.g., "4XX · CLIENT ERROR")
+- Center: icon circle (scissors/server/lock) with breathing animation
+- Large serif code number in status color
+- Gold razor-rule divider
+- Headline + HTTP status name + description
+- Two CTAs: primary action (status color bg) + ghost button
+- Bottom footer: "Casa Barbero [Admin] · {code} {name}"
+
+**Rendering patterns:**
+
+404 (auto-routed):
+```jsx
+// Customer: navigate to any non-existent route
+// Admin: navigate to /admin/invalid-page
+// Both auto-render the NotFound page
+```
+
+401/403 (inline in components):
+```jsx
+if (!session) return <AuthError code={401} />
+if (!permissions.includes('admin')) return <AuthError code={403} />
+```
+
+500/502/503/504 (error boundaries or API handlers):
+```jsx
+catch (error) {
+  if (error.status === 503) return <ServerError code={503} />
+  return <ServerError code={500} /> // fallback
+}
+```
+
 ### Database (PostgreSQL/Supabase)
 
 - Use migrations for schema changes; never alter production directly.

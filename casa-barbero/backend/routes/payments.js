@@ -5,7 +5,6 @@ import { createCalendarEvent } from '../google-calendar.js'
 const router = Router()
 const PM_BASE = 'https://api.paymongo.com/v1'
 
-// PayMongo uses HTTP Basic auth: base64(secretKey + ":")
 function pmAuth() {
   return 'Basic ' + Buffer.from(process.env.PAYMONGO_SECRET_KEY + ':').toString('base64')
 }
@@ -28,27 +27,46 @@ async function pmFetch(endpoint, options = {}) {
   return json
 }
 
-// Confirm payment on a booking and optionally create a Google Calendar event
+// Confirm a paid booking: update status columns, create transaction, add calendar event
 async function confirmBooking(bookingId, intentId) {
-  await supabase.from('bookings').update({ status: 'paid' }).eq('id', bookingId)
+  await supabase.from('bookings').update({
+    booking_status: 'confirmed',
+    payment_status: 'paid',
+    payment_method: 'card',
+  }).eq('id', bookingId)
+
   await supabase.from('payment_logs')
-    .update({ status: 'paid' })
+    .update({ status: 'paid', payment_method: 'card' })
     .eq('paymongo_intent_id', intentId)
 
   const { data: booking } = await supabase
-    .from('bookings').select('*').eq('id', bookingId).single()
+    .from('bookings')
+    .select('*, service:service_id (name), barber:barber_id (name)')
+    .eq('id', bookingId)
+    .single()
 
   if (booking) {
+    await supabase.from('transactions').insert({
+      booking_id:     bookingId,
+      payment_method: 'card',
+      amount:         booking.amount,
+      processed_at:   new Date().toISOString(),
+    })
+
     const eventId = await createCalendarEvent(booking)
     if (eventId) {
       await supabase.from('bookings').update({ google_event_id: eventId }).eq('id', bookingId)
     }
+    await supabase.from('calendar_sync_log').insert({
+      booking_id:  bookingId,
+      event_type:  'booking',
+      description: `Added ${booking.service?.name || ''} — ${booking.client_name || ''} to calendar`,
+      success:     eventId !== null,
+    })
   }
 }
 
-// ── POST /api/payments ──────────────────────────────────
-// Accepts card details + booking_id. Creates a PayMongo Payment Intent,
-// attaches the card, and either confirms immediately or triggers 3DS.
+// ── POST /api/payments ───────────────────────────────────
 router.post('/', async (req, res) => {
   const { booking_id, card_number, exp_month, exp_year, cvc, email } = req.body
 
@@ -56,20 +74,23 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'booking_id, card_number, exp_month, exp_year, and cvc are required' })
   }
 
-  // Look up the booking
   const { data: booking, error: bErr } = await supabase
-    .from('bookings').select('*').eq('id', booking_id).single()
+    .from('bookings')
+    .select('*, service:service_id (name)')
+    .eq('id', booking_id)
+    .single()
 
   if (bErr || !booking) return res.status(404).json({ error: 'Booking not found' })
-  if (booking.status === 'paid') return res.status(400).json({ error: 'This booking is already paid' })
+  if (booking.payment_status === 'paid') {
+    return res.status(400).json({ error: 'This booking is already paid' })
+  }
 
-  // Normalize year: "25" → 2025, "2025" stays as-is
   const year4 = parseInt(exp_year, 10) < 100
     ? 2000 + parseInt(exp_year, 10)
     : parseInt(exp_year, 10)
 
   try {
-    // Step 1: Tokenize the card (create a payment method)
+    // Step 1: Tokenize card
     const pmMethod = await pmFetch('/payment_methods', {
       method: 'POST',
       body: JSON.stringify({
@@ -83,8 +104,8 @@ router.post('/', async (req, res) => {
               cvc:         String(cvc),
             },
             billing: {
-              name:  booking.customer_name,
-              phone: booking.phone,
+              name:  booking.client_name,
+              phone: booking.client_phone,
               email: email || `${booking.id.slice(0, 8)}@casabarbero.ph`,
             },
           },
@@ -93,7 +114,7 @@ router.post('/', async (req, res) => {
     })
     const paymentMethodId = pmMethod.data.id
 
-    // Step 2: Create the payment intent (amount in centavos)
+    // Step 2: Create payment intent
     const pmIntent = await pmFetch('/payment_intents', {
       method: 'POST',
       body: JSON.stringify({
@@ -104,7 +125,7 @@ router.post('/', async (req, res) => {
             payment_method_options: { card: { request_three_d_secure: 'any' } },
             currency:               'PHP',
             capture_type:           'automatic',
-            description:            `${booking.service_name} — Casa Barbero (${booking.id.slice(0, 8)})`,
+            description:            `${booking.service?.name || 'Service'} — Casa Barbero (${booking.id.slice(0, 8)})`,
           },
         },
       }),
@@ -112,7 +133,7 @@ router.post('/', async (req, res) => {
     const intentId  = pmIntent.data.id
     const clientKey = pmIntent.data.attributes.client_key
 
-    // Step 3: Attach the card to the intent
+    // Step 3: Attach card to intent
     const pmAttach = await pmFetch(`/payment_intents/${intentId}/attach`, {
       method: 'POST',
       body: JSON.stringify({
@@ -128,22 +149,20 @@ router.post('/', async (req, res) => {
     const { status, next_action, payments } = pmAttach.data.attributes
     const paymentId = payments?.[0]?.id ?? null
 
-    // Persist a payment log row (status will be updated by webhook or poll)
     await supabase.from('payment_logs').insert({
       booking_id,
       paymongo_payment_id: paymentId,
       paymongo_intent_id:  intentId,
+      payment_method:      'card',
       status:              status === 'succeeded' ? 'paid' : 'pending',
       amount:              booking.amount,
     })
 
-    // ── Immediate success (most test cards with no 3DS) ──
     if (status === 'succeeded') {
       await confirmBooking(booking_id, intentId)
       return res.json({ status: 'paid', booking_id, intent_id: intentId })
     }
 
-    // ── 3DS redirect required ────────────────────────────
     if (next_action?.type === 'redirect' && next_action.redirect?.url) {
       return res.json({
         status:       'requires_action',
@@ -160,14 +179,12 @@ router.post('/', async (req, res) => {
   }
 })
 
-// ── GET /api/payments/status/:intentId ─────────────────
-// Frontend polls this after a 3DS redirect to check if payment succeeded.
+// ── GET /api/payments/status/:intentId ──────────────────
 router.get('/status/:intentId', async (req, res) => {
   try {
     const data   = await pmFetch(`/payment_intents/${req.params.intentId}`)
-    const status = data.data.attributes.status // succeeded | awaiting_payment_method | processing
+    const status = data.data.attributes.status
 
-    // If payment just succeeded via 3DS, confirm the booking now
     if (status === 'succeeded') {
       const { data: logs } = await supabase
         .from('payment_logs')
@@ -177,8 +194,8 @@ router.get('/status/:intentId', async (req, res) => {
 
       if (logs?.[0]?.booking_id) {
         const { data: bk } = await supabase
-          .from('bookings').select('status').eq('id', logs[0].booking_id).single()
-        if (bk && bk.status !== 'paid') {
+          .from('bookings').select('payment_status').eq('id', logs[0].booking_id).single()
+        if (bk && bk.payment_status !== 'paid') {
           await confirmBooking(logs[0].booking_id, req.params.intentId)
         }
       }
@@ -191,7 +208,6 @@ router.get('/status/:intentId', async (req, res) => {
 })
 
 // ── POST /api/webhooks/paymongo ─────────────────────────
-// Exported so server.js can register it before express.json() middleware.
 export async function webhookHandler(req, res) {
   try {
     const raw   = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : String(req.body)
@@ -211,8 +227,8 @@ export async function webhookHandler(req, res) {
 
         if (logs?.[0]?.booking_id) {
           const { data: bk } = await supabase
-            .from('bookings').select('status').eq('id', logs[0].booking_id).single()
-          if (bk && bk.status !== 'paid') {
+            .from('bookings').select('payment_status').eq('id', logs[0].booking_id).single()
+          if (bk && bk.payment_status !== 'paid') {
             await confirmBooking(logs[0].booking_id, intentId)
           }
         }

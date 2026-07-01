@@ -6,7 +6,8 @@ export const sessionStorage = {
     if (!raw) return null;
     try {
       const session = JSON.parse(raw);
-      if (session.expiresAt && session.expiresAt < Date.now()) return null;
+      // Supabase expires_at is in Unix seconds; Date.now() is in milliseconds
+      if (session.expiresAt && session.expiresAt * 1000 < Date.now()) return null;
       return session;
     } catch {
       return null;

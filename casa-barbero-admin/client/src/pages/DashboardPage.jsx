@@ -1,7 +1,7 @@
 import "../assets/styles/dashboard.css";
 import { useMemo } from "react";
 import { Line } from "react-chartjs-2";
-import { formatPeso } from "../../../shared/data/casaData.js";
+import { formatPeso } from "../utils/formatters.js";
 import { Badge, PageHeader, PanelTitle, Pill } from "../components/ui/index.jsx";
 import { lineData, lineOptions } from "../lib/charts.js";
 import { navigate } from "../services/navigation.js";

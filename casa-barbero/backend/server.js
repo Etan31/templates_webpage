@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import catalogRouter from './routes/catalog.js'
 import slotsRouter from './routes/slots.js'
 import bookingsRouter from './routes/bookings.js'
 import paymentsRouter, { webhookHandler } from './routes/payments.js'
@@ -25,13 +26,15 @@ app.post('/api/webhooks/paymongo', express.raw({ type: 'application/json' }), we
 app.use(express.json())
 
 // ── API routes ──────────────────────────────────────────
+app.use('/api/catalog',         catalogRouter)
 app.use('/api/available-slots', slotsRouter)
 app.use('/api/bookings',        bookingsRouter)
 app.use('/api/payments',        paymentsRouter)
 
 // ── Google OAuth (one-time setup) ───────────────────────
-// Visit http://localhost:3001/api/auth/google once to authorize
-// your Google account so the backend can create calendar events.
+// Visit /api/auth/google once to authorize your Google account so the
+// backend can create calendar events. Redirect URI is set via GOOGLE_REDIRECT_URI
+// and must match an authorized redirect URI in the Google Cloud OAuth client.
 app.get('/api/auth/google', (req, res) => {
   res.redirect(getAuthUrl())
 })

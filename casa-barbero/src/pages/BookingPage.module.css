@@ -41,6 +41,12 @@
   font-style: italic;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .back {
   font-size: 12px;
   letter-spacing: .08em;
@@ -49,6 +55,22 @@
 }
 
 .back:hover { color: var(--text); }
+
+.login {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  transition: color .2s, border-color .2s;
+}
+
+.login:hover {
+  color: var(--gold);
+  border-color: var(--border-gold);
+}
 
 /* ── Hero ── */
 .hero {

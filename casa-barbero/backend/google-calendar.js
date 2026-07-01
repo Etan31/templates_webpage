@@ -1,17 +1,34 @@
 import { google } from 'googleapis'
-import { readFileSync, writeFileSync, existsSync } from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { createClient } from '@supabase/supabase-js'
 
-const __dirname   = path.dirname(fileURLToPath(import.meta.url))
-const TOKEN_PATH  = path.join(__dirname, 'token.json')
-const CREDS_PATH  = path.join(__dirname, '../client_secret.json')
-const REDIRECT    = 'http://localhost:3001/api/auth/google/callback'
-const SCOPES      = ['https://www.googleapis.com/auth/calendar']
+const SCOPES = ['https://www.googleapis.com/auth/calendar']
+const TOKEN_ROW_ID = 'default'
+
+// Dedicated service-role client: google_oauth_tokens has RLS with no policies,
+// so only the service-role key (backend-only) can read/write it.
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 function buildClient() {
-  const { web } = JSON.parse(readFileSync(CREDS_PATH, 'utf8'))
-  return new google.auth.OAuth2(web.client_id, web.client_secret, REDIRECT)
+  return new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  )
+}
+
+async function saveTokens(tokens) {
+  await supabaseAdmin.from('google_oauth_tokens').upsert({
+    id: TOKEN_ROW_ID,
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    scope: tokens.scope,
+    token_type: tokens.token_type,
+    expiry_date: tokens.expiry_date,
+    updated_at: new Date().toISOString(),
+  })
 }
 
 // Returns the URL the user must visit to authorize access
@@ -27,19 +44,24 @@ export function getAuthUrl() {
 export async function handleCallback(code) {
   const client = buildClient()
   const { tokens } = await client.getToken(code)
-  writeFileSync(TOKEN_PATH, JSON.stringify(tokens, null, 2))
+  await saveTokens(tokens)
   return tokens
 }
 
 async function getAuthorizedClient() {
-  if (!existsSync(TOKEN_PATH)) return null
+  const { data: saved } = await supabaseAdmin
+    .from('google_oauth_tokens')
+    .select('access_token, refresh_token, scope, token_type, expiry_date')
+    .eq('id', TOKEN_ROW_ID)
+    .maybeSingle()
+
+  if (!saved) return null
+
   const client = buildClient()
-  const saved  = JSON.parse(readFileSync(TOKEN_PATH, 'utf8'))
   client.setCredentials(saved)
   // Persist refreshed tokens automatically
   client.on('tokens', (fresh) => {
-    const merged = { ...JSON.parse(readFileSync(TOKEN_PATH, 'utf8')), ...fresh }
-    writeFileSync(TOKEN_PATH, JSON.stringify(merged, null, 2))
+    saveTokens({ ...saved, ...fresh })
   })
   return client
 }
@@ -47,26 +69,29 @@ async function getAuthorizedClient() {
 export async function createCalendarEvent(booking) {
   const auth = await getAuthorizedClient()
   if (!auth) {
-    console.warn('[Google Calendar] token.json not found — skipping calendar event.')
-    console.warn('[Google Calendar] Visit http://localhost:3001/api/auth/google to set up.')
+    console.warn('[Google Calendar] No stored token — skipping calendar event.')
+    console.warn('[Google Calendar] Visit /api/auth/google on this API to authorize.')
     return null
   }
 
   const calendar   = google.calendar({ version: 'v3', auth })
   const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary'
 
-  // Parse booking time_slot ("14:30") into a full Date in Manila time
-  const [h, m]  = booking.time_slot.split(':').map(Number)
-  const start   = new Date(`${booking.date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00+08:00`)
-  const end     = new Date(start.getTime() + booking.duration_min * 60_000)
+  const clientName  = booking.client_name   || 'Unknown'
+  const clientPhone = booking.client_phone  || ''
+  const svcName     = booking.service?.name || 'Service'
+  const barberName  = booking.barber?.name  || 'Staff'
+
+  const start = new Date(booking.booked_at)
+  const end   = new Date(start.getTime() + booking.duration_min * 60_000)
 
   const event = {
-    summary:     `${booking.service_name} — ${booking.customer_name}`,
+    summary:     `${svcName} — ${clientName}`,
     description: [
-      `Service : ${booking.service_name}`,
-      `Barber  : ${booking.barber_name}`,
-      `Customer: ${booking.customer_name}`,
-      `Phone   : ${booking.phone}`,
+      `Service : ${svcName}`,
+      `Barber  : ${barberName}`,
+      `Customer: ${clientName}`,
+      `Phone   : ${clientPhone}`,
       `Amount  : ₱${booking.amount}`,
       `Booking : ${booking.id}`,
     ].join('\n'),

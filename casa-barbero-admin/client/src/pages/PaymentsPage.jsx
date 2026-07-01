@@ -1,26 +1,35 @@
 import "../assets/styles/payments.css";
 import { useState } from "react";
 import { Bar } from "react-chartjs-2";
-import { formatPeso } from "../../../shared/data/casaData.js";
+import { formatPeso } from "../utils/formatters.js";
 import { Badge, Kpi, Method, PageHeader, PanelTitle, Pill, Segmented } from "../components/ui/index.jsx";
 import { barData, barOptions } from "../lib/charts.js";
 import { prettyDate } from "../utils/formatters.js";
 
-export default function Payments({ transactions }) {
+export default function Payments({ transactions, dailyRevenue, barbers }) {
   const [period, setPeriod] = useState("This Month");
   const [byBarber, setByBarber] = useState(false);
-  const daily = Array.from({ length: 27 }, (_, index) => ({ date: `Jun ${index + 1}`, amount: [7200, 9100, 6500, 11800, 13200, 17200, 11250, 8700, 10500, 7000, 12600, 14200, 18400, 12900, 9400, 10800, 8200, 13500, 15800, 20500, 14600, 9800, 11400, 8700, 15100, 16600, 4800][index] }));
+
+  const totalRevenue = transactions.reduce((s, t) => s + (t.amount || 0), 0);
+  const pendingAmount = transactions.filter((t) => t.status === "pending").reduce((s, t) => s + (t.amount || 0), 0);
+  const refundsAmount = transactions.filter((t) => t.status === "refunded").reduce((s, t) => s + (t.amount || 0), 0);
+
+  const chartData = dailyRevenue.map(({ date, amount }) => ({
+    date: new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    amount
+  }));
+
   return (
     <section>
       <PageHeader title="Payments & Revenue" actions={<Segmented options={["This Week", "This Month", "Last 3 Months", "Custom"]} value={period} onChange={setPeriod} />} />
       <div className="payment-kpis">
-        <Kpi title="Total Revenue · This Month" value={formatPeso(186400)} detail="vs ₱163,500 last month" trend="+14%" tone="up" />
-        <Kpi title="Pending Payments" value={formatPeso(4150)} detail="6 transactions" trend="amber" dot />
-        <Kpi title="Refunds Issued" value={formatPeso(700)} detail="2 this month" trend="amber" />
+        <Kpi title="Total Revenue · This Month" value={formatPeso(totalRevenue)} detail="from recorded transactions" trend="+0%" tone="up" />
+        <Kpi title="Pending Payments" value={formatPeso(pendingAmount)} detail={`${transactions.filter((t) => t.status === "pending").length} transactions`} trend="amber" dot />
+        <Kpi title="Refunds Issued" value={formatPeso(refundsAmount)} detail={`${transactions.filter((t) => t.status === "refunded").length} this month`} trend="amber" />
       </div>
       <div className="payments-grid">
-        <section className="panel"><PanelTitle title="Daily Revenue · June" value={<button className="ghost-button small" onClick={() => setByBarber(!byBarber)}>By Barber</button>} /><Bar data={barData(daily, byBarber)} options={barOptions} /></section>
-        <section className="panel"><PanelTitle title="Top Services" /><TopServices /></section>
+        <section className="panel"><PanelTitle title="Daily Revenue · Last 30 Days" value={<button className="ghost-button small" onClick={() => setByBarber(!byBarber)}>By Barber</button>} /><Bar data={barData(chartData, byBarber, barbers)} options={barOptions} /></section>
+        <section className="panel"><PanelTitle title="Top Services" /><TopServices transactions={transactions} /></section>
       </div>
       <section className="panel transaction-panel">
         <PanelTitle title="Transaction History" value="PayMongo" />
@@ -30,13 +39,15 @@ export default function Payments({ transactions }) {
   );
 }
 
-function TopServices() {
-  const top = [
-    ["Skin Fade", 18450, 100],
-    ["Cut & Beard", 14200, 78],
-    ["Classic Cut", 11900, 66],
-    ["Hot Towel Shave", 8400, 44],
-    ["Hair Color", 6000, 30]
-  ];
-  return <div className="top-services">{top.map(([name, amount, width], index) => <article key={name}><div><span>{index + 1}</span><strong>{name}</strong><em>{formatPeso(amount)}</em></div><i style={{ width: `${width}%` }} /></article>)}</div>;
+function TopServices({ transactions }) {
+  const totals = transactions.reduce((acc, t) => {
+    if (!t.service) return acc;
+    acc[t.service] = (acc[t.service] || 0) + (t.amount || 0);
+    return acc;
+  }, {});
+  const top = Object.entries(totals)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5);
+  const max = top[0]?.[1] || 1;
+  return <div className="top-services">{top.map(([name, amount], index) => <article key={name}><div><span>{index + 1}</span><strong>{name}</strong><em>{formatPeso(amount)}</em></div><i style={{ width: `${Math.round((amount / max) * 100)}%` }} /></article>)}</div>;
 }
