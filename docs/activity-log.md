@@ -1,5 +1,21 @@
 # Activity Log
 
+## 2026-07-01 — Deployment prep: Google Calendar token moved off local disk
+
+Summary: Planned AWS deployment (Amplify for both frontends, App Runner for both Express backends, subdomains of tristanehron.xyz via GoDaddy DNS). Found that `casa-barbero/backend/google-calendar.js` stored the Google OAuth token in a local `token.json` file and read credentials from a local `client_secret.json` — both gitignored, never committed, and would not survive App Runner's ephemeral filesystem (wiped on every redeploy).
+
+**Decision:** Keep both Express backends as-is (no rewrite to Supabase Edge Functions) and deploy on AWS App Runner; fix the token persistence to use Supabase instead.
+
+**SQL migration 006 applied:** New `google_oauth_tokens` table (single row, id='default'), RLS enabled with no policies — only the service-role key can read/write it.
+
+**Backend code changes:**
+- `google-calendar.js` — replaced `readFileSync`/`writeFileSync` token I/O with a dedicated service-role Supabase client reading/writing `google_oauth_tokens`; OAuth client id/secret/redirect now come from `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` env vars instead of `client_secret.json`
+- `server.js` — updated stale comment referencing hardcoded `localhost:3001` redirect
+
+**New required env vars for `casa-barbero/backend`:** `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+
+**Next:** Manual AWS console setup (Amplify x2, App Runner x2) and GoDaddy DNS records — see plan for full steps. Must re-run the Google OAuth consent flow once against production after deploy (old local token doesn't transfer).
+
 ## 2026-07-01 — Phase 6: Cleanup migration (bookings schema finalized)
 
 Summary: Dropped all transitional/legacy columns from `bookings`, renamed `*_new` UUID FK columns to canonical names.

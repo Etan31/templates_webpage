@@ -32,8 +32,9 @@ app.use('/api/bookings',        bookingsRouter)
 app.use('/api/payments',        paymentsRouter)
 
 // ── Google OAuth (one-time setup) ───────────────────────
-// Visit http://localhost:3001/api/auth/google once to authorize
-// your Google account so the backend can create calendar events.
+// Visit /api/auth/google once to authorize your Google account so the
+// backend can create calendar events. Redirect URI is set via GOOGLE_REDIRECT_URI
+// and must match an authorized redirect URI in the Google Cloud OAuth client.
 app.get('/api/auth/google', (req, res) => {
   res.redirect(getAuthUrl())
 })
