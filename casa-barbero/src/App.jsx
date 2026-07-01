@@ -15,6 +15,7 @@ import Footer      from './components/Footer'
 import ConciergeBanner from './components/ConciergeBanner'
 import BookingPage     from './pages/BookingPage'
 import AppointmentPage from './pages/AppointmentPage'
+import NotFound        from './pages/errors/NotFound'
 
 function HomePage() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/"        element={<HomePage />} />
         <Route path="/booking"     element={<BookingPage />} />
         <Route path="/appointment" element={<AppointmentPage />} />
+        <Route path="*"            element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
