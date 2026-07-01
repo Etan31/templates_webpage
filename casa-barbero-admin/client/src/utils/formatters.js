@@ -1,3 +1,7 @@
+export function formatPeso(value) {
+  return `₱${Number(value).toLocaleString("en-PH")}`;
+}
+
 export function titleCase(value) {
   return String(value).replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

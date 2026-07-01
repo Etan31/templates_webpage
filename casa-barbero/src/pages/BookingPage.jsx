@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './BookingPage.module.css'
+import ConciergeBanner from '../components/ConciergeBanner'
+import { ADMIN_LOGIN_URL } from '../config'
 
 const CATEGORIES = [
   {
@@ -67,10 +69,15 @@ export default function BookingPage() {
         <Link to="/" className={styles.logo}>
           Casa <span className={styles.logoAccent}>Barbero</span>
         </Link>
-        <Link to="/" className={styles.back}>
-          ← Back to Home
-        </Link>
+        <div className={styles.headerActions}>
+          <Link to="/" className={styles.back}>
+            ← Back to Home
+          </Link>
+          <a href={ADMIN_LOGIN_URL} className={styles.login}>Login</a>
+        </div>
       </header>
+
+      <ConciergeBanner />
 
       {/* Hero */}
       <section className={styles.hero}>

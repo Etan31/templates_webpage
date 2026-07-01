@@ -4,17 +4,19 @@ import { AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Slash } from "lucide-react";
-import { barbers as seedBarbers, blockedTimes, services } from "../../../shared/data/casaData.js";
 import { Badge, Input, Modal, PageHeader, Segmented, SlidePanel, Toggle } from "../components/ui/index.jsx";
 import { api } from "../services/api.js";
 import { blockSchema, manualBookingSchema } from "../validation/schemas.js";
 import { shortName } from "../utils/formatters.js";
 
-export default function Schedule({ bookings, barbers, setBookings }) {
+export default function Schedule({ bookings, barbers, catalog, setBookings }) {
   const [view, setView] = useState("month");
   const [blockOpen, setBlockOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
-  const [blocks, setBlocks] = useState(blockedTimes);
+  const [blocks, setBlocks] = useState(catalog.blockedTimes);
+
+  useEffect(() => setBlocks(catalog.blockedTimes), [catalog.blockedTimes]);
+
   return (
     <section>
       <PageHeader title="Schedule" />
@@ -29,8 +31,8 @@ export default function Schedule({ bookings, barbers, setBookings }) {
         <button className="gold-button" type="button" onClick={() => setManualOpen(true)}><Plus size={16} /> Manual Booking</button>
       </div>
       {view === "month" ? <MonthView bookings={bookings} blocks={blocks} /> : <WeekView bookings={bookings} barbers={barbers} day={view === "day"} />}
-      <AnimatePresence>{blockOpen ? <BlockModal onClose={() => setBlockOpen(false)} onCreate={(block) => setBlocks([block, ...blocks])} /> : null}</AnimatePresence>
-      <AnimatePresence>{manualOpen ? <ManualBookingPanel onClose={() => setManualOpen(false)} onCreate={(booking) => setBookings([booking, ...bookings])} barbers={barbers} /> : null}</AnimatePresence>
+      <AnimatePresence>{blockOpen ? <BlockModal onClose={() => setBlockOpen(false)} barbers={barbers} onCreate={(block) => setBlocks([block, ...blocks])} /> : null}</AnimatePresence>
+      <AnimatePresence>{manualOpen ? <ManualBookingPanel onClose={() => setManualOpen(false)} barbers={barbers} services={catalog.services} onCreate={(booking) => setBookings([booking, ...bookings])} /> : null}</AnimatePresence>
     </section>
   );
 }
@@ -86,34 +88,48 @@ function BookingChip({ booking }) {
   return <div className="booking-chip" style={{ "--barber": booking.barberColor }}>{shortName(booking.client)} · {booking.service}</div>;
 }
 
-function ManualBookingPanel({ onClose, onCreate, barbers }) {
+function ManualBookingPanel({ onClose, onCreate, barbers, services }) {
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(manualBookingSchema),
-    defaultValues: { serviceId: services[0].id, barberId: barbers[0]?.id || "ms", date: "2026-06-27", time: "10:00", duration: services[0].duration, price: services[0].price, paymentStatus: "unpaid" }
+    defaultValues: {
+      serviceId: services[0]?.id ?? "",
+      barberId: barbers[0]?.id ?? "",
+      date: "2026-06-27",
+      time: "10:00",
+      duration: services[0]?.duration ?? 30,
+      price: services[0]?.price ?? 0,
+      paymentStatus: "unpaid"
+    }
   });
-  const selectedService = services.find((service) => service.id === watch("serviceId")) || services[0];
-  useEffect(() => {
-    // Defaults are visible even if the user never touches the service dropdown.
-  }, [selectedService]);
+  const selectedService = services.find((s) => s.id === watch("serviceId")) || services[0];
   return (
     <SlidePanel title="Manual Booking" eyebrow="Create booking" onClose={onClose}>
       <form className="panel-form" onSubmit={handleSubmit(async (values) => {
-        const barber = barbers.find((item) => item.id === values.barberId) || barbers[0];
-        const booking = {
-          ...values,
-          id: `bk_local_${Date.now()}`,
-          number: 999,
-          service: selectedService.name,
-          barber: barber.name,
-          barberInitials: barber.initials,
-          barberColor: barber.color,
-          status: "pending"
+        const payload = {
+          clientName: values.client,
+          phone: values.phone,
+          serviceId: values.serviceId,
+          barberId: values.barberId,
+          bookedAt: `${values.date}T${values.time}:00+08:00`,
+          durationMin: Number(values.duration),
+          amount: Number(values.price)
         };
         try {
-          const response = await api("/api/admin/bookings", { method: "POST", body: JSON.stringify(values) });
+          const response = await api("/api/admin/bookings", { method: "POST", body: JSON.stringify(payload) });
           onCreate(response.booking);
         } catch {
-          onCreate(booking);
+          // Fall back to local-only booking so the UI updates even if the request fails
+          const barber = barbers.find((item) => item.id === values.barberId) || barbers[0];
+          onCreate({
+            ...values,
+            id: `bk_local_${Date.now()}`,
+            number: 999,
+            service: selectedService?.name ?? "",
+            barber: barber?.name ?? "",
+            barberInitials: barber?.initials ?? "",
+            barberColor: barber?.color ?? "#888",
+            status: "pending"
+          });
         }
         onClose();
       })}>
@@ -132,10 +148,10 @@ function ManualBookingPanel({ onClose, onCreate, barbers }) {
   );
 }
 
-function BlockModal({ onClose, onCreate }) {
+function BlockModal({ onClose, onCreate, barbers }) {
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(blockSchema),
-    defaultValues: { barberId: "ms", date: "2026-06-27", allDay: true, range: false, reason: "" }
+    defaultValues: { barberId: barbers[0]?.id ?? "", date: "2026-06-27", allDay: true, range: false, reason: "" }
   });
   return (
     <Modal onClose={onClose}>
@@ -151,7 +167,7 @@ function BlockModal({ onClose, onCreate }) {
       })}>
         <h2>Block Date</h2>
         <span className="signature-divider" />
-        <Input label="Barber"><select {...register("barberId")}>{seedBarbers.map((barber) => <option key={barber.id} value={barber.id}>{barber.name}</option>)}</select></Input>
+        <Input label="Barber"><select {...register("barberId")}>{barbers.map((barber) => <option key={barber.id} value={barber.id}>{barber.name}</option>)}</select></Input>
         <div className="two-col">
           <Input label="Date"><input type="date" {...register("date")} /></Input>
           <label className="toggle-row compact"><span>Range</span><Toggle checked={watch("range")} register={register("range")} /></label>

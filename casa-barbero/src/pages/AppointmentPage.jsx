@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import styles from "./AppointmentPage.module.css";
+import ConciergeBanner from "../components/ConciergeBanner";
+import { ADMIN_LOGIN_URL } from "../config";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-const BARBERS = [
-  { id: "any",     name: "Any Available" },
-  { id: "john",    name: "John" },
-  { id: "patrick", name: "Patrick" },
-];
+// "Any Available" is always the first barber option — stable reference so
+// useState(ANY_BARBER) doesn't change on re-render.
+const ANY_BARBER = { id: "any", name: "Any Available" };
 
 const TEST_CARDS = [
   { label: "Visa — instant approval (no 3DS)", num: "4343434343434345", exp: "12/28", cvc: "123" },
@@ -43,7 +43,6 @@ function fmtCard(raw) {
 const DAYS  = next7Days();
 const STEPS = ["Schedule", "Details", "Payment", "Done"];
 
-// Subtle panel transition — Emil Kowalski style
 const panel = {
   initial:  { opacity: 0, y: 10 },
   animate:  { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
@@ -60,23 +59,27 @@ export default function AppointmentPage() {
   const svcPrice = searchParams.get("price");
   const svcDur   = searchParams.get("dur");
 
+  // Live catalog — barbers and services from the DB
+  const [catalog, setCatalog] = useState({ barbers: [], services: [] });
+
   // Step 1 — Schedule
-  const [step,        setStep]        = useState(1);
-  const [barber,      setBarber]      = useState(BARBERS[0]); // default: Any Available
-  const [date,        setDate]        = useState(null);
-  const [slot,        setSlot]        = useState(null);
-  const [slots,       setSlots]       = useState([]);
+  const [step,         setStep]         = useState(1);
+  const [barber,       setBarber]       = useState(ANY_BARBER);
+  const [date,         setDate]         = useState(null);
+  const [slot,         setSlot]         = useState(null);
+  const [slots,        setSlots]        = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [slotsError,  setSlotsError]  = useState("");
+  const [slotsError,   setSlotsError]   = useState("");
 
   // Step 2 — Details
-  const [name,        setName]        = useState("");
-  const [phone,       setPhone]       = useState("");
-  const [email,       setEmail]       = useState("");
-  const [saveDetails, setSaveDetails] = useState(false);
-  const [bookingId,   setBookingId]   = useState(null);
-  const [bookingBusy, setBookingBusy] = useState(false);
-  const [bookingError,setBookingError]= useState("");
+  const [name,         setName]         = useState("");
+  const [phone,        setPhone]        = useState("");
+  const [email,        setEmail]        = useState("");
+  const [saveDetails,  setSaveDetails]  = useState(false);
+  const [bookingId,    setBookingId]    = useState(null);
+  const [bookingBusy,  setBookingBusy]  = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [payMethod,    setPayMethod]    = useState("online");
 
   // Step 3 — Payment
   const [cardNum,  setCardNum]  = useState("");
@@ -88,7 +91,17 @@ export default function AppointmentPage() {
   const [payError, setPayError] = useState("");
   const [polling,  setPolling]  = useState(false);
 
-  // Load saved customer & card info on mount
+  // Fetch catalog (barbers + services) once on mount
+  useEffect(() => {
+    fetch(`${API}/api/catalog`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.barbers) setCatalog(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Restore saved customer & card info
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("casabarbero_customer") || "null");
@@ -116,9 +129,12 @@ export default function AppointmentPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
 
-  // Fetch available slots whenever barber, date, or service changes
+  // Fetch available slots whenever barber, date, service duration, or catalog changes.
+  // catalog.barbers.length guards against querying "any" before barbers have loaded.
   useEffect(() => {
     if (!date || !svcDur) return;
+    if (barber.id === "any" && catalog.barbers.length === 0) return;
+
     setSlots([]);
     setSlot(null);
     setSlotsError("");
@@ -126,9 +142,8 @@ export default function AppointmentPage() {
 
     const dur = svcDur;
     if (barber.id === "any") {
-      // Query both barbers in parallel, show union of free times
       Promise.all(
-        BARBERS.filter((b) => b.id !== "any").map((b) =>
+        catalog.barbers.map((b) =>
           fetch(`${API}/api/available-slots?barber=${b.id}&date=${date}&duration=${dur}`)
             .then((r) => r.json())
         )
@@ -149,7 +164,7 @@ export default function AppointmentPage() {
         .catch((e) => setSlotsError(e.message))
         .finally(() => setSlotsLoading(false));
     }
-  }, [barber.id, date, svcDur]);
+  }, [barber.id, date, svcDur, catalog.barbers.length]);
 
   // All hooks must be above any early return
   if (!svcName || !svcPrice || !svcDur) {
@@ -164,8 +179,12 @@ export default function AppointmentPage() {
     desc:     "",
   };
 
-  // ── Step 2 → 3: create booking record ──
-  async function reserveSlot() {
+  // All barbers shown in the picker: "Any Available" + catalog barbers
+  const allBarbers = [ANY_BARBER, ...catalog.barbers];
+
+  // ── Step 2 → 3 (online) or → 4 (counter): create booking record ──
+  async function reserveSlot(method) {
+    setPayMethod(method);
     setBookingBusy(true);
     setBookingError("");
 
@@ -178,9 +197,11 @@ export default function AppointmentPage() {
       localStorage.removeItem("casabarbero_customer");
     }
 
-    // Resolve actual barber — "any" defaults to first named barber
+    // "Any Available" resolves to the first barber from the catalog
     const actualBarber =
-      barber.id === "any" ? BARBERS.find((b) => b.id !== "any") : barber;
+      barber.id === "any"
+        ? (catalog.barbers[0] ?? ANY_BARBER)
+        : barber;
 
     try {
       const res = await fetch(`${API}/api/bookings`, {
@@ -197,12 +218,13 @@ export default function AppointmentPage() {
           time_slot:     slot,
           duration_min:  service.duration,
           amount:        service.price,
+          payment_method: method,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not reserve slot");
       setBookingId(data.booking.id);
-      setStep(3);
+      setStep(method === "counter" ? 4 : 3);
     } catch (e) {
       setBookingError(e.message);
     } finally {
@@ -283,6 +305,9 @@ export default function AppointmentPage() {
     setCvc(c);
   }
 
+  const detailsValid =
+    name.trim() && phone.trim() && email.trim() && email.includes("@");
+
   const canPay =
     cardNum.replace(/\s/g, "").length === 16 &&
     expMonth && expYear && cvc.length >= 3 &&
@@ -300,8 +325,13 @@ export default function AppointmentPage() {
         <Link to="/" className={styles.logo}>
           Casa <span className={styles.logoAccent}>Barbero</span>
         </Link>
-        <Link to="/booking" className={styles.back}>← Change Service</Link>
+        <div className={styles.headerActions}>
+          <Link to="/booking" className={styles.back}>← Change Service</Link>
+          <a href={ADMIN_LOGIN_URL} className={styles.login}>Login</a>
+        </div>
       </header>
+
+      <ConciergeBanner />
 
       {/* Progress stepper */}
       <nav className={styles.progress} aria-label="Booking steps">
@@ -352,7 +382,7 @@ export default function AppointmentPage() {
                   Select Barber <span className={styles.tagOptional}>Optional</span>
                 </legend>
                 <div className={styles.barberGrid}>
-                  {BARBERS.map((b) => (
+                  {allBarbers.map((b) => (
                     <motion.button
                       key={b.id}
                       className={`${styles.barberCard} ${barber?.id === b.id ? styles.selected : ""}`}
@@ -361,7 +391,7 @@ export default function AppointmentPage() {
                       whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
                     >
                       <div className={styles.barberAvatar}>
-                        {b.id === "any" ? "✦" : b.name[0]}
+                        {b.id === "any" ? "✦" : b.initials ?? b.name[0]}
                       </div>
                       <span className={styles.barberName}>{b.name}</span>
                     </motion.button>
@@ -489,7 +519,6 @@ export default function AppointmentPage() {
                 />
               </div>
 
-              {/* Save details for rebooking */}
               <label className={styles.saveRow}>
                 <input
                   type="checkbox" className={styles.saveCheck}
@@ -502,20 +531,29 @@ export default function AppointmentPage() {
               {bookingError && <p className={styles.errorMsg}>{bookingError}</p>}
 
               <div className={styles.navRow}>
-                <button className={styles.btnGhost} onClick={() => setStep(1)}>
+                <button
+                  className={styles.btnGhost}
+                  onClick={() => setStep(1)}
+                  disabled={bookingBusy}
+                >
                   ← Back
                 </button>
-                <button
-                  className={styles.btnPrimary}
-                  disabled={
-                    !name.trim() || !phone.trim() ||
-                    !email.trim() || !email.includes("@") ||
-                    bookingBusy
-                  }
-                  onClick={reserveSlot}
-                >
-                  {bookingBusy ? "Reserving…" : "Proceed to Payment →"}
-                </button>
+                <div className={styles.payChoice}>
+                  <button
+                    className={styles.btnGhost}
+                    disabled={!detailsValid || bookingBusy}
+                    onClick={() => reserveSlot("counter")}
+                  >
+                    {bookingBusy && payMethod === "counter" ? "Reserving…" : "Pay at the Counter"}
+                  </button>
+                  <button
+                    className={styles.btnPrimary}
+                    disabled={!detailsValid || bookingBusy}
+                    onClick={() => reserveSlot("online")}
+                  >
+                    {bookingBusy && payMethod === "online" ? "Reserving…" : "Pay Online Now →"}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -529,7 +567,6 @@ export default function AppointmentPage() {
               <h1 className={styles.panelTitle}>Payment</h1>
               <p className={styles.panelSub}>Enter your card to confirm and pay.</p>
 
-              {/* Test card helper */}
               <div className={styles.testBox}>
                 <p className={styles.testTitle}>Sandbox Mode — Use a test card</p>
                 <div className={styles.testCards}>
@@ -550,7 +587,6 @@ export default function AppointmentPage() {
                 <SummaryRow label="Total"   value={`₱${service.price}`} total />
               </div>
 
-              {/* Card form */}
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel} htmlFor="cn">Card Number</label>
                 <input
@@ -590,7 +626,6 @@ export default function AppointmentPage() {
                 </div>
               </div>
 
-              {/* Save card for next time */}
               <label className={styles.saveRow}>
                 <input
                   type="checkbox" className={styles.saveCheck}
@@ -641,10 +676,14 @@ export default function AppointmentPage() {
                 ✓
               </motion.div>
 
-              <span className={styles.eyebrow}>Booking Confirmed</span>
+              <span className={styles.eyebrow}>
+                {payMethod === "counter" ? "Reservation Confirmed" : "Booking Confirmed"}
+              </span>
               <h1 className={styles.panelTitle}>You&rsquo;re all set!</h1>
               <p className={styles.panelSub}>
-                Payment received and your slot is reserved. See you soon.
+                {payMethod === "counter"
+                  ? "Your slot is reserved. Just pay at the counter when you arrive."
+                  : "Payment received and your slot is reserved. See you soon."}
               </p>
 
               <div className={styles.summaryBox}>
@@ -655,11 +694,21 @@ export default function AppointmentPage() {
                 <SummaryRow label="Time"         value={slot && fmt12h(slot)} />
                 <SummaryRow label="Customer"     value={name} />
                 <SummaryRow label="Email"        value={email} />
-                <SummaryRow label="Amount Paid"  value={`₱${service.price}`} total />
+                <SummaryRow
+                  label={payMethod === "counter" ? "Pay at Counter" : "Amount Paid"}
+                  value={`₱${service.price}`}
+                  total
+                />
               </div>
 
               <p className={styles.confirmNote}>
-                A Google Calendar event has been added to your barber&rsquo;s schedule.
+                {payMethod === "counter" ? (
+                  <>
+                    Please settle <strong>₱{service.price}</strong> at the counter — cash or GCash accepted.
+                  </>
+                ) : (
+                  <>A Google Calendar event has been added to your barber&rsquo;s schedule.</>
+                )}
                 <br />
                 Walk in at: <strong>123 Rizal St., Poblacion, Manila</strong>
               </p>

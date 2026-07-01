@@ -32,6 +32,12 @@
   font-style: italic;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .back {
   font-size: 12px;
   letter-spacing: .08em;
@@ -40,6 +46,21 @@
   transition: color .2s;
 }
 .back:hover { color: var(--gold); }
+
+.login {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  transition: color .2s, border-color .2s;
+}
+.login:hover {
+  color: var(--gold);
+  border-color: rgba(201, 146, 42, .35);
+}
 
 /* ── Progress stepper ───────────────────────────────── */
 .progress {
@@ -608,6 +629,13 @@
   padding-top: 4px;
 }
 
+/* Paired pay buttons (counter vs online) on the details step */
+.payChoice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* ── Buttons ────────────────────────────────────────── */
 .btnPrimary {
   display: inline-flex;
@@ -747,5 +775,6 @@
 @media (max-width: 420px) {
   .barberGrid { flex-direction: column; }
   .navRow { flex-direction: column-reverse; align-items: stretch; }
+  .payChoice { flex-direction: column-reverse; gap: 10px; }
   .btnPrimary, .btnGhost { justify-content: center; }
 }

@@ -12,6 +12,7 @@ import Pricing     from './components/Pricing'
 import Hours       from './components/Hours'
 import Contact     from './components/Contact'
 import Footer      from './components/Footer'
+import ConciergeBanner from './components/ConciergeBanner'
 import BookingPage     from './pages/BookingPage'
 import AppointmentPage from './pages/AppointmentPage'
 
@@ -21,6 +22,7 @@ function HomePage() {
       <Nav />
       <main>
         <Hero />
+        <ConciergeBanner />
         <Marquee />
         <Stats />
         <Services />

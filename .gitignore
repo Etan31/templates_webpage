@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Dependencies
 node_modules/
 
@@ -49,7 +48,6 @@ backend/token.json
 # OS
 .DS_Store
 Thumbs.db
-=======
 casa-barbero-admin/node_modules
 casa-barbero-admin/dist
 
@@ -58,4 +56,3 @@ casa-barbero-admin/dist/
 
 casa-barbero-admin/.env
 
->>>>>>> 33eb5723486d8f2a54264cb04915d5c3983ab4a1
