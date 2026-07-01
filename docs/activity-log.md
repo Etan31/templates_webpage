@@ -1,5 +1,29 @@
 # Activity Log
 
+## 2026-07-02 — Phase 1 complete: Amplify frontends live on custom domains
+
+Summary: Both React frontends deployed to AWS Amplify and live on tristanehron.xyz subdomains with auto HTTPS.
+
+**Amplify setup:**
+- Customer app (`casa-barbero`): Deployed to `https://barbero.tristanehron.xyz/` — booking page fully functional
+- Admin app (`casa-barbero-admin`): Deployed to `https://barbero-admin.tristanehron.xyz/admin/login` — admin dashboard ready
+
+**DNS configuration:**
+- GoDaddy DNS: Added CNAME records for `barbero` and `barbero-admin` subdomains pointing to Amplify
+- SSL/TLS: Auto-issued by AWS ACM (Amplify managed)
+- Propagation: Complete, both domains resolve and load with green SSL checkmarks
+
+**Environment variables (build-time):**
+- Customer: `VITE_API_URL`, `VITE_ADMIN_URL` → currently point to localhost; will update to Fly.io URLs post-deployment
+- Admin: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → configured, Supabase auth working
+
+**Docker & Fly.io prep (code-ready, deployment pending):**
+- Created Dockerfiles + .dockerignore for both backends
+- Created fly.toml config for both (Singapore region, auto HTTPS)
+- Pushed to main, awaiting Fly.io account card verification (~$7 hold) before deployment
+
+**Next:** Deploy backends to Fly.io (waiting on card verification), then update env vars to point frontends to production API URLs.
+
 ## 2026-07-01 — Deployment prep: Google Calendar token moved off local disk
 
 Summary: Planned AWS deployment (Amplify for both frontends, App Runner for both Express backends, subdomains of tristanehron.xyz via GoDaddy DNS). Found that `casa-barbero/backend/google-calendar.js` stored the Google OAuth token in a local `token.json` file and read credentials from a local `client_secret.json` — both gitignored, never committed, and would not survive App Runner's ephemeral filesystem (wiped on every redeploy).
