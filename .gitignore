@@ -6,3 +6,5 @@ casa-barbero-admin/dist/
 
 casa-barbero-admin/.env
 
+node_modules/
+dist/
