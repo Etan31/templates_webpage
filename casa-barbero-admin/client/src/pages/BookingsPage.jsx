@@ -2,11 +2,11 @@ import "../assets/styles/bookings.css";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { AlertTriangle, Calendar, Check, Clock3, Download, Edit3, List, MoreHorizontal, RefreshCw, X } from "lucide-react";
-import { barbers as seedBarbers, formatPeso } from "../../../shared/data/casaData.js";
+import { formatPeso, prettyDate, toDisplayTime } from "../utils/formatters.js";
 import { Badge, BulkBar, EmptyState, Input, Modal, PageHeader, Payment, Pill, SlidePanel } from "../components/ui/index.jsx";
-import { prettyDate, toDisplayTime } from "../utils/formatters.js";
+import { api } from "../services/api.js";
 
-export default function Bookings({ bookings, setBookings }) {
+export default function Bookings({ bookings, barbers, setBookings }) {
   const [status, setStatus] = useState("All");
   const [payment, setPayment] = useState("All");
   const [selected, setSelected] = useState([]);
@@ -18,15 +18,20 @@ export default function Bookings({ bookings, setBookings }) {
       <PageHeader title="Bookings" meta={`${bookings.length} total`} />
       <div className="filter-bar">
         <button type="button"><Calendar size={15} /> Jun 1 – Jun 30, 2026</button>
-        <select><option>All Barbers</option>{seedBarbers.map((barber) => <option key={barber.id}>{barber.name}</option>)}</select>
+        <select><option>All Barbers</option>{barbers.map((barber) => <option key={barber.id}>{barber.name}</option>)}</select>
         <ChipGroup label="Status" values={["All", "Pending", "Confirmed", "Completed", "Cancelled"]} active={status} onChange={setStatus} />
         <ChipGroup label="Payment" values={["All", "Paid", "Unpaid", "Refunded"]} active={payment} onChange={setPayment} />
         <button className="ghost-button push-right" type="button"><Download size={15} /> Export CSV</button>
       </div>
       {filtered.length ? <BookingsTable bookings={filtered} selected={selected} setSelected={setSelected} onDetail={setDetail} onCancel={setCancelTarget} /> : <EmptyState onClear={() => { setStatus("All"); setPayment("All"); }} />}
       <AnimatePresence>{selected.length ? <BulkBar count={selected.length} onClear={() => setSelected([])} /> : null}</AnimatePresence>
-      <AnimatePresence>{detail ? <BookingDetail booking={detail} onClose={() => setDetail(null)} onCancel={() => setCancelTarget(detail)} onConfirm={() => { setBookings(bookings.map((b) => b.id === detail.id ? { ...b, status: "confirmed" } : b)); setDetail(null); }} /> : null}</AnimatePresence>
+      <AnimatePresence>{detail ? <BookingDetail booking={detail} onClose={() => setDetail(null)} onCancel={() => setCancelTarget(detail)} onConfirm={() => {
+        api(`/api/admin/bookings/${detail.id}`, { method: "PATCH", body: JSON.stringify({ status: "confirmed" }) }).catch(() => {});
+        setBookings(bookings.map((b) => b.id === detail.id ? { ...b, status: "confirmed" } : b));
+        setDetail(null);
+      }} /> : null}</AnimatePresence>
       <AnimatePresence>{cancelTarget ? <CancelModal booking={cancelTarget} onClose={() => setCancelTarget(null)} onConfirm={() => {
+        api(`/api/admin/bookings/${cancelTarget.id}`, { method: "PATCH", body: JSON.stringify({ status: "cancelled" }) }).catch(() => {});
         setBookings(bookings.map((booking) => booking.id === cancelTarget.id ? { ...booking, status: "cancelled" } : booking));
         setCancelTarget(null);
       }} /> : null}</AnimatePresence>

@@ -6,6 +6,11 @@ import { sessionStorage } from "../services/sessionStorage.js";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import AdminApp from "./AdminApp.jsx";
+import NotFound from "../pages/errors/NotFound.jsx";
+
+const KNOWN_ADMIN_PAGES = new Set([
+  "dashboard", "bookings", "barbers", "payments", "schedule", "settings", "sync",
+]);
 
 export default function App() {
   const path = usePathname();
@@ -23,6 +28,11 @@ export default function App() {
     setSession(nextSession);
     navigate("/admin/dashboard");
   }} />;
+
+  const segment = path.split("/").pop();
+  if (segment && !KNOWN_ADMIN_PAGES.has(segment) && segment !== "admin") {
+    return <NotFound />;
+  }
 
   return (
     <AdminApp

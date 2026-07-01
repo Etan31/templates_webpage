@@ -12,8 +12,10 @@ import Pricing     from './components/Pricing'
 import Hours       from './components/Hours'
 import Contact     from './components/Contact'
 import Footer      from './components/Footer'
+import ConciergeBanner from './components/ConciergeBanner'
 import BookingPage     from './pages/BookingPage'
 import AppointmentPage from './pages/AppointmentPage'
+import NotFound        from './pages/errors/NotFound'
 
 function HomePage() {
   return (
@@ -21,6 +23,7 @@ function HomePage() {
       <Nav />
       <main>
         <Hero />
+        <ConciergeBanner />
         <Marquee />
         <Stats />
         <Services />
@@ -43,6 +46,7 @@ export default function App() {
         <Route path="/"        element={<HomePage />} />
         <Route path="/booking"     element={<BookingPage />} />
         <Route path="/appointment" element={<AppointmentPage />} />
+        <Route path="*"            element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )

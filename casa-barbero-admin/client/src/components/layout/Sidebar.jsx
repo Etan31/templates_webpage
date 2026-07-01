@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, CreditCard, Grid2X2, List, LogOut, RefreshCw, SlidersHorizontal, User } from "lucide-react";
-import { owner } from "../../../../shared/data/casaData.js";
 import { navigate } from "../../services/navigation.js";
 
 const nav = [
@@ -13,7 +12,7 @@ const nav = [
   { path: "/admin/settings", label: "Settings", icon: SlidersHorizontal }
 ];
 
-export default function Sidebar({ path, onLogout, drawer, onClose }) {
+export default function Sidebar({ path, onLogout, drawer, onClose, user }) {
   return (
     <>
       <AnimatePresence>{drawer ? <motion.button className="mobile-scrim" aria-label="Close navigation" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} /> : null}</AnimatePresence>
@@ -40,10 +39,10 @@ export default function Sidebar({ path, onLogout, drawer, onClose }) {
           })}
         </nav>
         <div className="owner-block">
-          <div className="avatar">{owner.initials}</div>
+          <div className="avatar">{(user?.name || "").split(" ").map((w) => w[0]).join("").toUpperCase() || "?"}</div>
           <div>
-            <strong>{owner.name}</strong>
-            <span>{owner.role}</span>
+            <strong>{user?.name ?? ""}</strong>
+            <span>{user?.role ?? ""}</span>
           </div>
           <button type="button" onClick={onLogout} aria-label="Log out"><LogOut size={16} /></button>
         </div>

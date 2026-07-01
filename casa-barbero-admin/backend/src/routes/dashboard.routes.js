@@ -4,6 +4,7 @@ import { getDashboardSummary } from "../services/dashboardService.js";
 
 export const dashboardRoutes = Router();
 
-dashboardRoutes.get("/dashboard", requireAdmin, (_req, res) => {
-  res.json(getDashboardSummary());
+dashboardRoutes.get("/dashboard", requireAdmin, async (_req, res) => {
+  const summary = await getDashboardSummary();
+  res.json(summary);
 });
