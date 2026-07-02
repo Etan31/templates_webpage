@@ -1,5 +1,6 @@
 import { google } from 'googleapis'
 import { createClient } from '@supabase/supabase-js'
+import ws from 'ws'
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar']
 const TOKEN_ROW_ID = 'default'
@@ -8,7 +9,8 @@ const TOKEN_ROW_ID = 'default'
 // so only the service-role key (backend-only) can read/write it.
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { realtime: { transport: ws } }
 )
 
 function buildClient() {
