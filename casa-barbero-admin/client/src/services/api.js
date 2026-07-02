@@ -1,8 +1,11 @@
 import { sessionStorage } from "./sessionStorage.js";
 
+const apiBase = import.meta.env.VITE_API_URL || "";
+
 export async function api(path, options = {}) {
   const session = sessionStorage.get();
-  const response = await fetch(path, {
+  const url = apiBase + path;
+  const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
