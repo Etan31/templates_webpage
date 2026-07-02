@@ -1,5 +1,24 @@
 # Activity Log
 
+## 2026-07-03 — Admin made fully dynamic against Supabase + polish/perf pass
+
+Summary: Audited the admin app and found backend routes were already Supabase-backed but most client pages mutated local state only. Wired everything end-to-end, plus performance and UX work on both apps.
+
+**Decisions:**
+- Services model: card toggle on Barbers page = "offered by this barber" (per-barber assignment via barber_services); global pricing/retire edits live in the Edit form. New barbers get all active services by default; new services auto-assign to the barber they were added under.
+- Shop-wide `workingHours` kept in GET /barbers response as fallback, but each barber now carries own `hours` (barber_working_hours is per-barber in schema).
+- Booking cancel note saved to bookings.notes (no messaging integration yet).
+- Deleted dead code: backend `data/store.js` mock, client `lib/supabase.js` (admin client talks only to the backend API).
+
+**Found bugs fixed:**
+- Block modal sent `{allDay,start,end}` but backend expects `{isAllDay,startTime,endTime}` — all blocks silently became all-day.
+- Schedule calendar was hardcoded to June 2026 (static weekday math, dead nav buttons).
+- Admin had no favicon (the recurring /favicon.ico 404); customer favicon was an off-brand purple template leftover.
+
+**Also earlier (2026-07-02/03):** Fly.io backends deployed (casa-barbero-api, casa-barbero-admin-api, SIN region) — required `ws` package for Node 18 + Supabase realtime; secrets set via flyctl. Root cause of admin login failures: Amplify apps were building stale `casa-barbero-admin`/`casa-barbero-client` branches, not main — branches synced, apps reconnected to main. Google Calendar OAuth re-authorized against fly.dev redirect URI. Admin credentials reset (demo@example.com).
+
+**Next:** push main (owner does this), redeploy casa-barbero-admin-api via flyctl (backend routes changed), smoke-test all admin actions in production, end-to-end booking test.
+
 ## 2026-07-02 — Phase 1 complete: Amplify frontends live on custom domains
 
 Summary: Both React frontends deployed to AWS Amplify and live on tristanehron.xyz subdomains with auto HTTPS.
