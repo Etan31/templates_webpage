@@ -265,3 +265,50 @@
 
   .hours-row button:nth-of-type(n + 2) { grid-column: 1 / -1; }
 }
+
+/* Editable working-hours time inputs */
+.hours-row input[type="time"] {
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: var(--text);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.hours-row input[type="time"]:disabled {
+  opacity: 0.35;
+}
+
+.muted-note {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.inactive-service {
+  opacity: 0.55;
+}
+
+.inactive-tag {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.edit-service-card {
+  grid-column: span 1;
+  display: block !important;
+}
+
+.edit-service-card .modal-actions {
+  margin-top: 10px;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 12px;
+}

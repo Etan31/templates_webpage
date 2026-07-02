@@ -21,3 +21,33 @@
   color: var(--muted);
   padding: 0 14px;
 }
+
+/* Date-range filter inputs */
+.date-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.date-range input[type="date"] {
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: var(--text);
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+.show-more {
+  display: block;
+  margin: 16px auto 0;
+}
+
+.panel-actions a.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+}

@@ -94,3 +94,13 @@
   color: var(--danger);
   font-weight: 800;
 }
+
+/* Tactile press feedback on all action buttons */
+.gold-button:active,
+.ghost-button:active,
+.outline-gold:active,
+.danger-button:active,
+.danger-outline:active,
+.icon-btn:active {
+  transform: translateY(1px) scale(0.98);
+}

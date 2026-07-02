@@ -7,6 +7,7 @@ import { barbersRoutes } from "./routes/barbers.routes.js";
 import { bookingsRoutes } from "./routes/bookings.routes.js";
 import { dashboardRoutes } from "./routes/dashboard.routes.js";
 import { paymentsRoutes } from "./routes/payments.routes.js";
+import { servicesRoutes } from "./routes/services.routes.js";
 import { systemRoutes } from "./routes/system.routes.js";
 
 export const app = express();
@@ -24,4 +25,5 @@ app.use("/api/admin", bookingsRoutes);
 app.use("/api/admin", barbersRoutes);
 app.use("/api/admin", availabilityRoutes);
 app.use("/api/admin", paymentsRoutes);
+app.use("/api/admin", servicesRoutes);
 app.use("/api/admin", systemRoutes);

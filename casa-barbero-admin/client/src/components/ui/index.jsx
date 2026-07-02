@@ -101,6 +101,6 @@ export function EmptyState({ onClear }) {
   return <div className="empty-state"><Search size={42} /><h2>No bookings match your filters.</h2><button className="outline-gold" type="button" onClick={onClear}>Clear filters</button></div>;
 }
 
-export function BulkBar({ count, onClear }) {
-  return <motion.div className="bulk-bar" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}><strong>{count} selected</strong><button>Cancel Selected</button><button>Mark Completed</button><button>Export</button><button onClick={onClear} aria-label="Clear selection"><X size={16} /></button></motion.div>;
+export function BulkBar({ count, onClear, onCancel, onComplete, onExport }) {
+  return <motion.div className="bulk-bar" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}><strong>{count} selected</strong><button onClick={onCancel}>Cancel Selected</button><button onClick={onComplete}>Mark Completed</button><button onClick={onExport}>Export</button><button onClick={onClear} aria-label="Clear selection"><X size={16} /></button></motion.div>;
 }

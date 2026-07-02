@@ -162,3 +162,13 @@
   .day-cell { min-height: 118px; }
   .week-view { grid-template-columns: 58px repeat(4, 220px); }
 }
+
+/* Current-day highlight */
+.day-cell.today {
+  border-color: rgba(201, 168, 76, 0.55);
+  background: rgba(201, 168, 76, 0.05);
+}
+
+.day-cell.today > strong {
+  color: var(--gold);
+}

@@ -50,7 +50,7 @@ bookingsRoutes.get("/bookings", requireAdmin, async (_req, res) => {
 });
 
 bookingsRoutes.post("/bookings", requireAdmin, async (req, res) => {
-  const { clientName, phone, clientEmail, serviceId, barberId, bookedAt, durationMin, amount, notes } = req.body;
+  const { clientName, phone, clientEmail, serviceId, barberId, bookedAt, durationMin, amount, notes, paymentStatus } = req.body;
   if (!clientName || !phone || !serviceId || !barberId || !bookedAt || !amount) {
     return res.status(400).json({ error: "clientName, phone, serviceId, barberId, bookedAt, and amount are required" });
   }
@@ -68,7 +68,7 @@ bookingsRoutes.post("/bookings", requireAdmin, async (req, res) => {
       amount,
       notes: notes || null,
       booking_status: "confirmed",
-      payment_status: "unpaid",
+      payment_status: paymentStatus || "unpaid",
       payment_method: "counter"
     })
     .select(BOOKING_SELECT)
@@ -85,7 +85,12 @@ bookingsRoutes.patch("/bookings/:id", requireAdmin, async (req, res) => {
     paymentMethod: "payment_method",
     notes: "notes",
     clientName: "client_name",
-    clientPhone: "client_phone"
+    clientPhone: "client_phone",
+    bookedAt: "booked_at",
+    barberId: "barber_id",
+    serviceId: "service_id",
+    durationMin: "duration_min",
+    amount: "amount"
   };
 
   const updates = {};

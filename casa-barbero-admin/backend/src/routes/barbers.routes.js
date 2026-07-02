@@ -17,16 +17,36 @@ function formatTime(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+// Raw 24h times for editing plus display strings for read views
+function mapHours(rows) {
+  return DAYS.map((day, i) => {
+    const row = (rows || []).find((h) => h.day_of_week === i);
+    const open = row?.is_open ?? false;
+    return {
+      day,
+      dayIndex: i,
+      open,
+      openTime: row?.open_time?.slice(0, 5) ?? null,
+      closeTime: row?.close_time?.slice(0, 5) ?? null,
+      breakStart: row?.break_start?.slice(0, 5) ?? null,
+      breakEnd: row?.break_end?.slice(0, 5) ?? null,
+      start: open ? (formatTime(row.open_time) ?? "9:00 AM") : "Closed",
+      end: open ? (formatTime(row.close_time) ?? "7:00 PM") : "--"
+    };
+  });
+}
+
 barbersRoutes.get("/barbers", requireAdmin, async (_req, res) => {
-  const [{ data: barbersData }, { data: servicesData }, { data: blockedData }] = await Promise.all([
+  const [{ data: barbersData }, { data: servicesData }, { data: blockedData }, { data: colorsData }] = await Promise.all([
     supabase.from("barbers").select(`
       id, name, role, is_active,
       tag_colors (hex),
       barber_services (service_id),
       barber_working_hours (day_of_week, is_open, open_time, close_time, break_start, break_end)
     `).order("created_at"),
-    supabase.from("services").select("id, name, duration_min, price").eq("is_active", true).order("name"),
-    supabase.from("blocked_dates").select("id, barber_id, blocked_date, is_all_day, start_time, end_time, reason, notes").order("blocked_date")
+    supabase.from("services").select("id, name, duration_min, price, is_active").order("name"),
+    supabase.from("blocked_dates").select("id, barber_id, blocked_date, is_all_day, start_time, end_time, reason, notes").order("blocked_date"),
+    supabase.from("tag_colors").select("id, name, hex")
   ]);
 
   const barbers = (barbersData || []).map((b) => ({
@@ -36,29 +56,23 @@ barbersRoutes.get("/barbers", requireAdmin, async (_req, res) => {
     role: b.role,
     active: b.is_active,
     color: b.tag_colors?.hex ?? "#888",
-    serviceIds: (b.barber_services || []).map((s) => s.service_id)
+    serviceIds: (b.barber_services || []).map((s) => s.service_id),
+    hours: mapHours(b.barber_working_hours)
   }));
 
-  // Use first active barber's working hours as the shop-wide schedule for the UI
+  // First active barber's hours double as the shop-wide schedule fallback
   const firstBarber = barbersData?.find((b) => b.is_active);
-  const workingHours = DAYS.map((day, i) => {
-    const row = (firstBarber?.barber_working_hours || []).find((h) => h.day_of_week === i);
-    return {
-      day,
-      open: row?.is_open ?? (i < 6),
-      start: row?.is_open ? (formatTime(row.open_time) ?? "9:00 AM") : "Closed",
-      end: row?.is_open ? (formatTime(row.close_time) ?? "7:00 PM") : "--",
-      breakStart: row?.is_open ? (formatTime(row.break_start) ?? "1:00 PM") : "--",
-      breakEnd: row?.is_open ? (formatTime(row.break_end) ?? "2:00 PM") : "--"
-    };
-  });
+  const workingHours = mapHours(firstBarber?.barber_working_hours);
 
   const services = (servicesData || []).map((s) => ({
     id: s.id,
     name: s.name,
     duration: s.duration_min,
-    price: s.price
+    price: s.price,
+    active: s.is_active
   }));
+
+  const tagColors = colorsData || [];
 
   const blockedTimes = (blockedData || []).map((b) => ({
     id: b.id,
@@ -71,7 +85,7 @@ barbersRoutes.get("/barbers", requireAdmin, async (_req, res) => {
     end: b.end_time ? b.end_time.slice(0, 5) : undefined
   }));
 
-  res.json({ barbers, workingHours, services, blockedTimes });
+  res.json({ barbers, workingHours, services, blockedTimes, tagColors });
 });
 
 barbersRoutes.post("/barbers", requireAdmin, async (req, res) => {
@@ -98,6 +112,13 @@ barbersRoutes.post("/barbers", requireAdmin, async (req, res) => {
   }));
   await supabase.from("barber_working_hours").insert(hours);
 
+  // New barbers offer every active service by default
+  const { data: activeServices } = await supabase.from("services").select("id").eq("is_active", true);
+  const serviceIds = (activeServices || []).map((s) => s.id);
+  if (serviceIds.length > 0) {
+    await supabase.from("barber_services").insert(serviceIds.map((sid) => ({ barber_id: barber.id, service_id: sid })));
+  }
+
   res.status(201).json({
     barber: {
       id: barber.id,
@@ -106,7 +127,8 @@ barbersRoutes.post("/barbers", requireAdmin, async (req, res) => {
       role: barber.role,
       active: barber.is_active,
       color: barber.tag_colors?.hex ?? "#888",
-      serviceIds: []
+      serviceIds,
+      hours: mapHours(hours.map((h) => ({ ...h, is_open: h.is_open })))
     }
   });
 });
