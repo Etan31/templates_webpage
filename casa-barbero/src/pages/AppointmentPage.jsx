@@ -385,8 +385,10 @@ export default function AppointmentPage() {
                   {allBarbers.map((b) => (
                     <motion.button
                       key={b.id}
+                      type="button"
                       className={`${styles.barberCard} ${barber?.id === b.id ? styles.selected : ""}`}
                       onClick={() => setBarber(b)}
+                      aria-pressed={barber?.id === b.id}
                       whileHover={{ y: -2, transition: { duration: 0.15 } }}
                       whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
                     >

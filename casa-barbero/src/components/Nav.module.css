@@ -111,8 +111,8 @@
   justify-content: center;
   align-items: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 4px;
@@ -140,12 +140,19 @@
 .hamburgerOpen span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .hamburgerOpen span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
 
-/* ── Mobile backdrop (portal, body-level) ── */
-.backdrop {
+/* ── Mobile menu layer (portal, body-level) ── */
+.mobileMenuLayer {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, .65);
   z-index: 98;
+  pointer-events: none;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .65);
+  z-index: 0;
   opacity: 0;
   pointer-events: none;
   transition: opacity .32s ease;
@@ -154,12 +161,12 @@
 
 .backdropOpen {
   opacity: 1;
-  pointer-events: all;
+  pointer-events: auto;
 }
 
-/* ── Side drawer (portal, body-level) ── */
+/* ── Side drawer ── */
 .drawer {
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
@@ -167,18 +174,23 @@
   background: #0d0a07;
   border-left: 1px solid rgba(201,146,42,.18);
   box-shadow: -16px 0 56px rgba(0,0,0,.7), -2px 0 8px rgba(0,0,0,.4);
-  z-index: 99;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   padding: 0;
   transform: translateX(100%);
-  transition: transform .38s cubic-bezier(0.22, 1, 0.36, 1);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform .38s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear .38s;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .drawerOpen {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .drawerGlow {
@@ -215,8 +227,8 @@
 
 .closeBtn {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   background: rgba(255,255,255,.05);
   border: 1px solid rgba(255,255,255,.1);
   border-radius: 50%;
@@ -261,7 +273,9 @@
 }
 
 .drawerLink {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding: 14px 28px;
   font-size: 15px;
   letter-spacing: .06em;

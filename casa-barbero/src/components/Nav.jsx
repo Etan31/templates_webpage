@@ -57,13 +57,14 @@ export default function Nav() {
           onClick={() => setOpen(v => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
+          aria-controls="mobile-navigation"
         >
           <span /><span /><span />
         </button>
       </nav>
 
       {createPortal(
-        <>
+        <div className={styles.mobileMenuLayer} aria-hidden={!open}>
           <div
             className={`${styles.backdrop} ${open ? styles.backdropOpen : ''}`}
             onClick={close}
@@ -71,9 +72,9 @@ export default function Nav() {
           />
 
           <aside
+            id="mobile-navigation"
             className={`${styles.drawer} ${open ? styles.drawerOpen : ''}`}
             aria-label="Mobile navigation"
-            aria-hidden={!open}
           >
             <div className={styles.drawerGlow} aria-hidden="true" />
 
@@ -120,7 +121,7 @@ export default function Nav() {
               <p className={styles.drawerHours}>Mon–Fri 9AM–8PM · Sat 9AM–6PM</p>
             </div>
           </aside>
-        </>,
+        </div>,
         document.body
       )}
     </>

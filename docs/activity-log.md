@@ -203,3 +203,12 @@ Decisions:
   surface the banner + login across the whole site.
 - Pre-existing ESLint errors in `AppointmentPage.jsx` (setState-in-effect, empty
   catch blocks, conditional useCallback) were left as-is — out of scope.
+
+## 2026-07-03 — Customer mobile navigation, favicon, and barber picker
+
+Summary: Fixed customer-facing responsive navigation and appointment layout issues.
+
+- Registered the existing Casa Barbero SVG favicon explicitly for standard and shortcut icon handling in both customer and admin HTML entry points.
+- Grouped the mobile drawer and backdrop into one controlled stacking context so the backdrop cannot cover drawer links; hidden drawers no longer accept pointer input, and menu controls now meet the 44px touch-target minimum.
+- Changed the appointment barber picker from a fixed flex row to an auto-fitting grid so any number of dynamic barbers wraps within the panel on desktop and mobile.
+- Added explicit button types and selected-state semantics to barber options.
