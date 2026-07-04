@@ -1,14 +1,14 @@
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  gap: var(--gap-grid);
   margin-bottom: 28px;
 }
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+  gap: var(--gap-grid);
   margin-bottom: 28px;
 }
 
@@ -109,6 +109,12 @@
   font-size: 12px;
 }
 
+.booking-line div strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .chart-panel { height: 235px; }
 
 .chart-panel canvas { height: 150px !important; }
@@ -128,4 +134,18 @@
 @media (max-width: 1279px) {
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 479px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+
+  .month-dots { gap: 4px; }
+
+  .booking-line {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: 12px 4px;
+  }
+
+  .booking-line time { white-space: nowrap; }
 }

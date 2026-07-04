@@ -70,7 +70,7 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
 }
 
-.auth-card h1 { font-size: 36px; }
+.auth-card h1 { font-size: var(--fs-title-xl); }
 
 .auth-card > p {
   margin: 12px 0 30px;
@@ -86,4 +86,8 @@
   .auth-card { padding: 34px 24px; }
   .auth-brand strong { letter-spacing: 5px; }
   .auth-brand p { letter-spacing: 5px; }
+}
+
+@media (max-width: 479px) {
+  .auth-page { padding: 20px 14px; }
 }

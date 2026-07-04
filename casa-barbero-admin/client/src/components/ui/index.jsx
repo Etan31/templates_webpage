@@ -40,7 +40,7 @@ export function SlidePanel({ title, eyebrow, status, onClose, children }) {
   return (
     <>
       <motion.button className="panel-scrim" aria-label="Close panel" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
-      <motion.aside className="slide-panel" initial={{ x: 360 }} animate={{ x: 0 }} exit={{ x: 380 }} transition={{ type: "spring", damping: 28, stiffness: 260 }}>
+      <motion.aside className="slide-panel" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 260 }}>
         <button className="close-btn" type="button" onClick={onClose} aria-label="Close"><X size={20} /></button>
         <p>{eyebrow}</p>
         <h2>{title}</h2>

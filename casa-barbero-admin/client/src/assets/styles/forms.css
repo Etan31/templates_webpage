@@ -132,3 +132,16 @@
   min-width: 122px;
   background: var(--card);
 }
+
+/* Form controls below 16px trigger iOS auto-zoom on focus */
+@media (max-width: 767px) {
+  .field input,
+  .input-field input,
+  .input-field select,
+  .input-field textarea,
+  .controls-bar select,
+  .filter-bar select,
+  .filter-bar input {
+    font-size: 16px;
+  }
+}

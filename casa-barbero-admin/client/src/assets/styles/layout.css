@@ -107,8 +107,7 @@
   border-top: 1px solid #2A2A2A;
 }
 
-.avatar,
-.badge {
+.avatar {
   display: inline-grid;
   flex: 0 0 auto;
   place-items: center;
@@ -160,7 +159,7 @@
 
 .page-header > div:first-child { flex: 1; }
 
-.page-header h1 { font-size: 34px; }
+.page-header h1 { font-size: var(--fs-page-title); }
 
 .signature-divider {
   display: block;
@@ -250,5 +249,12 @@
   .page-header .mono,
   .header-actions {
     margin-top: 12px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .main-area > * {
+    max-width: var(--content-max);
+    margin-inline: auto;
   }
 }

@@ -197,6 +197,14 @@ function AddBarberModal({ tagColors, onClose, onAdd }) {
   );
 }
 
+// Time fields per hours row, paired with their visible labels
+const HOUR_FIELDS = [
+  ["openTime", "Start"],
+  ["closeTime", "End"],
+  ["breakStart", "Break Start"],
+  ["breakEnd", "Break End"]
+];
+
 function WorkingHours({ barber, onPatch, toast }) {
   const [rows, setRows] = useState(barber?.hours || []);
   const [busy, setBusy] = useState(false);
@@ -243,22 +251,32 @@ function WorkingHours({ barber, onPatch, toast }) {
   return (
     <div className="hours-grid">
       <header><strong>Weekly schedule</strong><button type="button" onClick={applyMondayToAll} disabled={busy}>{busy ? "Applying..." : "Apply Mon hours to all days"}</button></header>
-      <div className="hours-row head"><span>Day</span><span>Open</span><span>Start</span><span>End</span><span>Break Start</span><span>Break End</span></div>
+      <div className="hours-row head">
+        <span>Day</span>
+        <span>Open</span>
+        <div className="hours-fields">
+          {HOUR_FIELDS.map(([field, label]) => <span key={field}>{label}</span>)}
+        </div>
+      </div>
       {rows.map((row) => (
         <div className="hours-row" key={row.day}>
           <strong>{row.day}</strong>
           <Toggle checked={row.open} onChange={() => { updateLocal(row.dayIndex, { open: !row.open }); commit(row, { isOpen: !row.open }); }} />
-          {["openTime", "closeTime", "breakStart", "breakEnd"].map((field) => (
-            <input
-              key={field}
-              type="time"
-              value={row[field] ?? ""}
-              disabled={!row.open}
-              onChange={(e) => updateLocal(row.dayIndex, { [field]: e.target.value })}
-              onBlur={(e) => e.target.value && commit({ ...row, [field]: e.target.value }, {})}
-              aria-label={`${row.day} ${field}`}
-            />
-          ))}
+          <div className="hours-fields">
+            {HOUR_FIELDS.map(([field, label]) => (
+              <label className="hours-field" key={field}>
+                <em>{label}</em>
+                <input
+                  type="time"
+                  value={row[field] ?? ""}
+                  disabled={!row.open}
+                  onChange={(e) => updateLocal(row.dayIndex, { [field]: e.target.value })}
+                  onBlur={(e) => e.target.value && commit({ ...row, [field]: e.target.value }, {})}
+                  aria-label={`${row.day} ${label}`}
+                />
+              </label>
+            ))}
+          </div>
         </div>
       ))}
     </div>

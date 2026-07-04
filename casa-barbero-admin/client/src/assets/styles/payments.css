@@ -1,14 +1,14 @@
 .payment-kpis {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: var(--gap-grid);
   margin-bottom: 28px;
 }
 
 .payments-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: var(--gap-grid);
   margin-bottom: 28px;
 }
 
@@ -56,7 +56,10 @@
   border-radius: 0;
 }
 
-.compact { min-width: 900px; }
+/* Scoped so it neither leaks to other pages nor beats the mobile stacked-card reset */
+@media (min-width: 768px) {
+  .page-payments .compact { min-width: 900px; }
+}
 
 @keyframes kpi-in {
   from { opacity: 0; transform: translateY(10px); }
@@ -73,6 +76,16 @@
   .payments-grid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 1023px) {
+  .payment-kpis .kpi-card { padding: 18px; }
+}
+
 @media (max-width: 767px) {
   .payment-kpis { grid-template-columns: 1fr; }
+}
+
+/* Wrap the 4-option period control into a 2x2 grid on narrow phones */
+@media (max-width: 479px) {
+  .page-payments .header-actions .segmented { flex-wrap: wrap; height: auto; padding: 3px; }
+  .page-payments .header-actions .segmented button { flex: 1 1 45%; }
 }

@@ -1,4 +1,4 @@
-.controls-bar strong { font-size: 18px; }
+.controls-bar strong { font-size: clamp(15px, 1.2vw + 12px, 18px); }
 
 .schedule-month {
   display: grid;
@@ -13,6 +13,12 @@
   text-transform: uppercase;
 }
 
+.mh-full,
+.mh-short { font-style: normal; }
+
+.mh-short,
+.day-dots { display: none; }
+
 .day-cell {
   position: relative;
   min-height: 100px;
@@ -21,6 +27,7 @@
   background: #1d1d1d;
   padding: 10px;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .day-cell.out { opacity: 0.28; }
@@ -78,7 +85,7 @@
 
 .week-view {
   display: grid;
-  grid-template-columns: 72px repeat(4, minmax(220px, 1fr));
+  grid-template-columns: 72px repeat(var(--cols, 4), minmax(220px, 1fr));
   height: calc(100dvh - 150px);
   min-height: 580px;
   overflow: auto;
@@ -157,10 +164,31 @@
 }
 
 @media (max-width: 767px) {
-  .schedule-month { grid-template-columns: 1fr; }
-  .month-heading { display: none; }
-  .day-cell { min-height: 118px; }
-  .week-view { grid-template-columns: 58px repeat(4, 220px); }
+  .schedule-month { gap: 3px; }
+  .month-heading { display: block; text-align: center; padding-bottom: 4px; }
+  .mh-full { display: none; }
+  .mh-short { display: inline; }
+  .day-cell { min-height: 48px; padding: 4px 2px; }
+  .day-cell > strong { justify-content: center; margin-bottom: 4px; font-size: 12px; }
+
+  .booking-chip,
+  .more-link { display: none; }
+
+  .day-dots { display: flex; justify-content: center; align-items: center; gap: 3px; }
+  .day-dots i { width: 6px; height: 6px; border-radius: 99px; }
+  .day-dots em { font-size: 9px; font-style: normal; color: var(--muted); line-height: 1; }
+  .blocked { font-size: 0; gap: 0; }
+
+  .week-view {
+    grid-template-columns: 56px repeat(var(--cols, 4), 76vw);
+    height: calc(100dvh - 200px);
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 56px;
+  }
+
+  .time-col { position: sticky; left: 0; z-index: 2; background: #1d1d1d; }
+
+  .barber-col { scroll-snap-align: start; }
 }
 
 /* Current-day highlight */

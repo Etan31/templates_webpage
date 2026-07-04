@@ -20,7 +20,7 @@ export default function Payments({ transactions, dailyRevenue, barbers }) {
   }));
 
   return (
-    <section>
+    <section className="page-payments">
       <PageHeader title="Payments & Revenue" actions={<Segmented options={["This Week", "This Month", "Last 3 Months", "Custom"]} value={period} onChange={setPeriod} />} />
       <div className="payment-kpis">
         <Kpi title="Total Revenue · This Month" value={formatPeso(totalRevenue)} detail="from recorded transactions" trend="+0%" tone="up" />
@@ -33,7 +33,7 @@ export default function Payments({ transactions, dailyRevenue, barbers }) {
       </div>
       <section className="panel transaction-panel">
         <PanelTitle title="Transaction History" value="PayMongo" />
-        <div className="table-wrap"><table className="data-table compact"><thead><tr><th>Transaction ID</th><th>Client</th><th>Service</th><th>Barber</th><th>Date</th><th>Amount</th><th>Method</th><th>Status</th><th>Actions</th></tr></thead><tbody>{transactions.slice(0, 8).map((item) => <tr key={item.id}><td title={item.id} className="mono gold-text">{item.id.slice(0, 12)}...</td><td><strong>{item.client}</strong></td><td>{item.service}</td><td><Badge label={item.barberInitials} style={{ "--badge": item.barberColor }} /> {item.barber}</td><td>{prettyDate(item.date, true)}</td><td><strong>{formatPeso(item.amount)}</strong></td><td><Method method={item.method} /></td><td><Pill value={item.status} /></td><td><button className="text-link">View Receipt</button>{item.status === "paid" ? <button className="danger-text">Refund</button> : null}</td></tr>)}</tbody></table></div>
+        <div className="table-wrap"><table className="data-table compact"><thead><tr><th>Transaction ID</th><th>Client</th><th>Service</th><th>Barber</th><th>Date</th><th>Amount</th><th>Method</th><th>Status</th><th>Actions</th></tr></thead><tbody>{transactions.slice(0, 8).map((item) => <tr key={item.id}><td data-label="Transaction ID" title={item.id} className="mono gold-text">{item.id.slice(0, 12)}...</td><td data-label="Client"><strong>{item.client}</strong></td><td data-label="Service">{item.service}</td><td data-label="Barber"><Badge label={item.barberInitials} style={{ "--badge": item.barberColor }} /> {item.barber}</td><td data-label="Date">{prettyDate(item.date, true)}</td><td data-label="Amount"><strong>{formatPeso(item.amount)}</strong></td><td data-label="Method"><Method method={item.method} /></td><td data-label="Status"><Pill value={item.status} /></td><td data-label="Actions" className="row-actions"><button className="text-link">View Receipt</button>{item.status === "paid" ? <button className="danger-text">Refund</button> : null}</td></tr>)}</tbody></table></div>
       </section>
     </section>
   );

@@ -113,16 +113,31 @@ function MonthView({ anchor, bookings, blocks, onOpenDay }) {
 
   return (
     <div className="schedule-month">
-      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <span className="month-heading" key={d}>{d}</span>)}
+      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <span className="month-heading" key={d} aria-label={d}><i className="mh-full">{d}</i><i className="mh-short">{d[0]}</i></span>)}
       {cells.map((cell) => {
         const dayBookings = byDay[cell.iso] || [];
         const blocked = blocks.find((block) => block.date === cell.iso);
         return (
-          <article className={`day-cell ${cell.inMonth ? "" : "out"} ${cell.iso === todayIso ? "today" : ""}`} key={cell.iso}>
+          <article
+            className={`day-cell ${cell.inMonth ? "" : "out"} ${cell.iso === todayIso ? "today" : ""}`}
+            key={cell.iso}
+            role="button"
+            tabIndex={0}
+            onClick={() => onOpenDay(cell.date)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" && e.key !== " ") return;
+              if (e.key === " ") e.preventDefault();
+              onOpenDay(cell.date);
+            }}
+          >
             <strong>{cell.date.getDate()}</strong>
             {blocked && cell.inMonth ? <div className="blocked"><Slash size={14} />{blocked.reason}</div> : null}
             {dayBookings.slice(0, 3).map((booking) => <BookingChip booking={booking} key={booking.id} />)}
-            {dayBookings.length > 3 ? <button type="button" className="more-link" onClick={() => onOpenDay(cell.date)}>+{dayBookings.length - 3} more</button> : null}
+            {dayBookings.length > 3 ? <button type="button" className="more-link" onClick={(e) => { e.stopPropagation(); onOpenDay(cell.date); }}>+{dayBookings.length - 3} more</button> : null}
+            <div className="day-dots">
+              {dayBookings.slice(0, 4).map((b) => <i key={b.id} style={{ background: b.barberColor }} />)}
+              {dayBookings.length > 4 ? <em>+{dayBookings.length - 4}</em> : null}
+            </div>
           </article>
         );
       })}
@@ -147,7 +162,7 @@ function WeekView({ anchor, bookings, barbers, day }) {
     : `Week of ${mondayOf(anchor).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 
   return (
-    <div className="week-view">
+    <div className="week-view" style={{ "--cols": barbers.length }}>
       <div className="time-col"><strong>{label}</strong>{hours.map((hour) => <span key={hour}>{hour > 12 ? hour - 12 : hour} {hour >= 12 ? "PM" : "AM"}</span>)}</div>
       {barbers.map((barber) => (
         <div className="barber-col" key={barber.id}>

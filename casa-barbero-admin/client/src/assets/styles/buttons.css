@@ -104,3 +104,12 @@
 .icon-btn:active {
   transform: translateY(1px) scale(0.98);
 }
+
+/* Touch-friendly hit areas */
+@media (pointer: coarse) {
+  .ghost-button.small,
+  .text-link,
+  .danger-text {
+    min-height: 44px;
+  }
+}
