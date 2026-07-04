@@ -234,3 +234,23 @@ Summary: Fixed the admin mobile navigation overlay blocking sidebar tabs and imp
 - Raised the mobile sidebar above the `mobile-scrim` layer while keeping the scrim above page content for click-outside dismissal.
 - Increased admin sidebar z-index to prevent stacking context conflicts with other overlays.
 - Applied consistent z-index layering strategy across both customer and admin frontends.
+
+## 2026-07-04 — Admin app full responsive overhaul (orchestrated, 7 workstreams)
+
+Summary: Made the entire admin app responsive from 360px phones to 1920px+ monitors via parallel subagent workstreams with strict file ownership. Layout/spacing/touch pass only; brand (gold, Playfair/Inter, dark palette) untouched.
+
+**Decisions:**
+- Breakpoint ladder kept max-width idiom: 479 (new) / 767 / 1023 (new) / 1279, plus min-width 1600 large-monitor containment and pointer:coarse touch queries.
+- Fluid type/spacing tokens added to global.css (clamp-based: --fs-page-title, --fs-kpi, --pad-card, --gap-grid, etc.); only responsive-relevant roles tokenized, body stays 14px.
+- Mobile tables stay stacked-cards via td data-label; mobile month calendar keeps 7 columns with barber-colored dots (tap opens day view) instead of collapsing to a 1-col list.
+
+**Bugs found and fixed along the way:**
+- Payments `.compact { min-width: 900px }` beat the mobile stacked-card reset (lazy chunk load order) AND leaked onto BarbersPage `.toggle-row.compact` — now scoped under `.page-payments` and min-width 768.
+- Payments transaction table had zero data-label attrs — mobile cards showed unlabeled values.
+- Week view hardcoded 4 barber columns while barbers are dynamic — now `repeat(var(--cols))` from barbers.length.
+- Dual `.badge` (layout.css vs ui.css) and dual `.filter-bar` (bookings.css vs ui.css) definitions consolidated into ui.css.
+- Stale `.hours-row button` rules targeted elements removed in the time-input refactor; time inputs were unlabeled on mobile — new labeled `.hours-field` pattern.
+- Form controls under 16px triggered iOS auto-zoom on focus — 16px at <=767.
+- Modal overlays clipped tall forms on short phones — overflow-y auto + align-items start.
+
+**Verified:** production build passes (vite build client, 2089 modules); selector-level diff review of all 17 changed files. Note: ui-ux-pro-max skill install was blocked by sandbox (external npm exec); its published guidelines were fetched read-only and applied instead.
