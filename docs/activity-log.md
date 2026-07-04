@@ -269,3 +269,13 @@ Summary: Made the entire admin app responsive from 360px phones to 1920px+ monit
 - Modal overlays clipped tall forms on short phones — overflow-y auto + align-items start.
 
 **Verified:** production build passes (vite build client, 2089 modules); selector-level diff review of all 17 changed files. Note: ui-ux-pro-max skill install was blocked by sandbox (external npm exec); its published guidelines were fetched read-only and applied instead.
+
+## 2026-07-04 — Customer landing page follow-ups: missed emoji, CountUp timing rework
+
+Summary: Two rounds of user-reported bugs on the icon/CountUp work from earlier the same day.
+
+**Bug 1 — emoji sweep was incomplete:** the initial "remove all emoji" pass used a Unicode-range regex that didn't reliably match astral-plane characters (📞 is U+1F4DE); it missed the phone emoji in `ConciergeBanner.jsx` and an identical one in `BookingPage.jsx`. Found via user report, then a corrected regex confirmed both and found no others. Both replaced with a `Phone` icon (lucide-react, already installed same day).
+
+**Bug 2 — CountUp never actually respected the time cap:** `CountUp.jsx` used `useSpring` with damping/stiffness *derived from* a `duration` prop — that formula shapes the spring's physics but does not bound wall-clock settle time (springs are asymptotic). Cutting `duration` from 1.6s to 0.6s made the physics stiffer but didn't reliably shorten the visible finish time, so the user's "still too long, must be under 1.5s total" report repeated after the first fix attempt. Root-caused and rewrote `CountUp.jsx` to use `animate()` (a real, time-bounded tween) instead of `useSpring`, so `duration` now maps directly to elapsed seconds. Retuned Stats.jsx so the slowest (last, most-delayed) stat provably finishes at 1.26s.
+
+**Verified:** `npm run build` clean after each fix.

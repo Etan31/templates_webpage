@@ -310,6 +310,48 @@ Errors: 400 (invalid email), 409 (email exists), 500 (server error)
 - Sanitize and validate all user inputs before storage or processing.
 - Don't expose error messages that leak system information.
 
+## Lessons Learned (Recurring Pitfalls)
+
+Mined from `/docs/activity-log.md`. Each one already cost real time or a user-visible bug once — check against these before repeating the pattern.
+
+### Third-party animation params don't always mean what they sound like
+CountUp's `duration` prop was fed into a `useSpring` damping/stiffness formula — it shapes the physics but does **not** bound wall-clock time (springs are asymptotic, not time-bounded). Cutting the number twice didn't reliably shorten the visible finish time; the user had to report "still too long" twice before the real fix.
+- **Recognize:** the user gives a hard numeric constraint ("under 1.5s total", "exactly N", "no more than X") for anything animated.
+- **Instead:** before tuning a knob, check what it actually controls (read the type signature / library source). If the user's constraint is a hard bound, use a mechanism with a provable bound (a duration-based tween, e.g. `animate()`) instead of an approximated one (a spring). Do the arithmetic for the worst case (last staggered item, slowest branch) and state the guaranteed number back to the user.
+
+### A "zero matches" search result is not proof of absence
+The first emoji sweep used a Unicode-range regex that silently failed to match an astral-plane character (📞, U+1F4DE) in two files. Reported clean, then the user found one anyway.
+- **Recognize:** you're about to declare a codebase-wide sweep "clean" (no more emoji, no more instances of X, no remaining references) based on a single regex/grep pass — especially involving Unicode, generated code, or anything the user has already caught you missing once.
+- **Instead:** corroborate with a second, differently-shaped check (a broader range, a plain-text keyword search, or just reading the remaining candidate files directly) before reporting completeness. Astral-plane emoji specifically need a range like `\x{1F000}-\x{1FFFF}`, not just the BMP dingbat/symbol blocks.
+
+### CSS Modules leak across pages via shared class names (this repo, both apps)
+Both `casa-barbero` and `casa-barbero-admin` lazy-load page CSS that persists after navigation. A generic class name defined in two different page stylesheets creates a load-order-dependent conflict, not a source-order one. One audit pass found three separate live instances: dual `.badge` (layout.css vs ui.css), dual `.filter-bar` (bookings.css vs ui.css), and `.compact { min-width: 900px }` (payments.css) leaking onto Barbers page `.toggle-row.compact` because whichever page's CSS chunk loaded last won.
+- **Recognize:** about to add or edit a CSS Modules rule with a short/generic class name (`.icon`, `.strip`, `.badge`, `.compact`, `.card`, `.dot`...) in a page-specific stylesheet.
+- **Instead:** grep sibling page CSS files for the same class name first. If it's genuinely shared, put the rule in the shared stylesheet (`ui.css`/`global.css`, or `index.css`) instead of letting two page files each define their own version. When delegating this kind of fix to a subagent, explicitly require it to search other pages for the same selector before assuming a fix is page-local.
+
+### Refactors leave dead CSS and dead controls behind, silently
+`.hours-row button` rules kept targeting elements that no longer existed after a refactor to time inputs — CSS doesn't error on a selector that matches nothing, it just quietly stops applying. Same shape of bug as the previously-found hardcoded-June-2026 calendar with dead nav buttons.
+- **Recognize:** just changed an element's tag or structure (e.g., `<button>` → `<input>`, removed a wrapper div) in JSX.
+- **Instead:** grep the paired CSS file for selectors referencing the old element/class immediately after the JSX change, not as an afterthought during some later unrelated audit.
+
+### Ephemeral hosting breaks local-disk state assumptions
+`google-calendar.js` stored an OAuth token in `token.json` on local disk — invisible until the AWS App Runner deployment plan surfaced that the filesystem is wiped on every redeploy.
+- **Recognize:** any `fs.writeFileSync`/`readFileSync` used for state that must outlive a single process, on a target that is Fly.io, App Runner, Lambda, or any other ephemeral/serverless host.
+- **Instead:** move that state to Supabase (or equivalent) before it becomes a deploy-day surprise, not after.
+
+### Don't auto-install a package whose identity you inferred yourself
+Tried `npx ui-ux-pro-max-cli init` for a skill the user named but wasn't installed — the sandbox correctly blocked it because the exact package identity came from my own web search, not from the user.
+- **Recognize:** about to run `npx`/`pip install`/similar for a tool the user referenced by a general name, where you had to search to find the actual package name.
+- **Instead:** ask the user to confirm/run it themselves (`! <command>`), or fall back to a read-only equivalent (fetch its published docs) and say plainly that the real thing isn't installed.
+
+### Monorepo dev servers need fixed, non-colliding ports
+Both `casa-barbero` and `casa-barbero-admin` defaulted to Vite's port 5173; whichever app grabbed it first silently served the other app's requests, producing a confusing "No routes matched /admin/login" React Router error that looked like a routing bug.
+- **Recognize:** debugging a routing/navigation error in a monorepo with multiple Vite/dev-server apps, especially a "route that should obviously exist doesn't match."
+- **Instead:** check which app is actually listening on the port in question before touching routing code. Keep each app's port fixed and `strictPort: true` in its dev config.
+
+### Resuming interrupted parallel subagents
+A session-limit hit interrupted 5 of 6 parallel background subagents mid-edit simultaneously during the admin responsive overhaul. Resuming each with an explicit "re-check current file state before continuing" instruction (rather than just "continue") avoided duplicate or conflicting edits — every agent correctly detected what it had already applied. Keep doing this on any future multi-agent resume.
+
 ## Activity Log
 
 - Record significant changes, decisions, and blockers in `/docs/activity-log.md`.
