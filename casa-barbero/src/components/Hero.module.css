@@ -151,14 +151,22 @@
   font-size: 12px;
   letter-spacing: .08em;
   color: var(--text-muted);
+  transition: color .25s var(--ease);
 }
 
-.trustDot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--accent);
+.trustItem:hover {
+  color: var(--text-dim);
+}
+
+.trustIcon {
+  color: var(--accent);
   flex-shrink: 0;
+  transition: color .25s var(--ease), transform .25s var(--ease);
+}
+
+.trustItem:hover .trustIcon {
+  color: var(--gold);
+  transform: scale(1.12);
 }
 
 /* actions */
@@ -190,6 +198,11 @@
   box-shadow: 0 8px 28px rgba(201,146,42,.4);
 }
 
+.btnPrimary:active {
+  transform: translateY(-1px) scale(.97);
+  box-shadow: 0 4px 16px rgba(201,146,42,.35);
+}
+
 .btnGhost {
   display: inline-flex;
   align-items: center;
@@ -200,12 +213,16 @@
   text-transform: uppercase;
   padding: 16px 4px;
   border-bottom: 1px solid rgba(236,228,216,.22);
-  transition: color .2s, border-color .2s;
+  transition: color .2s, border-color .2s, transform .2s;
 }
 
 .btnGhost:hover {
   color: var(--gold);
   border-color: rgba(201,146,42,.55);
+}
+
+.btnGhost:active {
+  transform: scale(.97);
 }
 
 /* scroll hint */

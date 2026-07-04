@@ -25,6 +25,11 @@
   gap: 10px;
   border-left: 1px solid var(--border-soft);
   opacity: 0;
+  transition: transform .3s var(--ease);
+}
+
+.stat:hover {
+  transform: translateY(-4px);
 }
 
 .stat:first-child {
@@ -43,6 +48,16 @@
   line-height: 1;
   color: var(--heading);
   letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+  transition: color .3s var(--ease);
+}
+
+.stat:hover .value {
+  color: var(--gold-light);
+}
+
+.countUp {
+  font-variant-numeric: tabular-nums;
 }
 
 .label {
@@ -50,6 +65,11 @@
   letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--accent);
+  transition: color .3s var(--ease);
+}
+
+.stat:hover .label {
+  color: var(--gold);
 }
 
 @media (max-width: 768px) {

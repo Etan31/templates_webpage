@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Phone } from 'lucide-react'
 import styles from './BookingPage.module.css'
 import ConciergeBanner from '../components/ConciergeBanner'
 import { ADMIN_LOGIN_URL } from '../config'
@@ -150,7 +151,7 @@ export default function BookingPage() {
               Book Online →
             </Link>
             <a href="tel:+639171234567" className={styles.ctaBtnGhost}>
-              📞 Call Now
+              <Phone size={14} strokeWidth={1.75} aria-hidden="true" /> Call Now
             </a>
           </div>
 

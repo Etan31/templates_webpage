@@ -4,14 +4,21 @@
   padding: 17px 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.strip:active {
+  cursor: grabbing;
 }
 
 .track {
   display: flex;
   gap: 52px;
-  animation: marquee 32s linear infinite;
   white-space: nowrap;
   width: max-content;
+  will-change: transform;
 }
 
 .item {
@@ -25,9 +32,17 @@
   letter-spacing: .32em;
   text-transform: uppercase;
   color: #5e5248;
+  transition: color .25s var(--ease);
+}
+
+.item:hover .word {
+  color: var(--gold-light);
 }
 
 .dot {
-  color: var(--accent);
-  font-size: 11px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
 }

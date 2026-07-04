@@ -11,8 +11,8 @@
 }
 
 .icon {
-  font-size: 14px;
-  line-height: 1;
+  color: var(--gold);
+  flex-shrink: 0;
 }
 
 .text {

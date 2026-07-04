@@ -63,8 +63,3 @@ a { text-decoration: none; color: inherit; }
 img { display: block; max-width: 100%; }
 input, textarea, button { font-family: inherit; }
 ul, ol { list-style: none; }
-
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}

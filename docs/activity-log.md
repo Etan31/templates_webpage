@@ -1,5 +1,20 @@
 # Activity Log
 
+## 2026-07-04 — Customer landing page: professional icons, CountUp stats, interactive marquee
+
+Summary: Replaced decorative Unicode glyphs with vector icons and added motion polish to casa-barbero's Hero/Stats/Marquee sections to make the landing page feel more premium and conversion-focused.
+
+**Decisions:**
+- Icon library: `lucide-react` (new dependency in casa-barbero), matching the icon library already used by casa-barbero-admin for consistency across the monorepo. ui-ux-pro-max skill's default (Phosphor) was not used since lucide was already proven elsewhere in this codebase.
+- `motion` (v12, already a dependency) covers CountUp's needs directly via `motion/react` — no new animation dependency required.
+
+**Changes:**
+- `Hero.jsx`/`Hero.module.css` — trust-item dots (`.trustDot`) replaced with semantic Lucide icons (`DoorOpen`, `BadgeCheck`, `Scissors`); added icon/text hover color shift and press-scale feedback on both hero CTAs.
+- `Stats.jsx`/`Stats.module.css` — new `CountUp.jsx` component (React Bits pattern, adapted to use `motion/react`'s `useInView`/`useMotionValue`/`useSpring`, with a `useReducedMotion` guard so counting is skipped under reduced-motion). Stats now animate from 0 to their target with staggered delays; added tabular-nums to prevent digit-width jitter mid-count, plus hover lift/color on each stat block.
+- `Marquee.jsx`/`Marquee.module.css` — rewritten from a CSS `@keyframes` loop to a JS-driven, pointer-draggable track (same rAF + wrap-point mechanics as React Bits' CurvedLoop, minus the SVG curve — straight line per request). Supports drag-to-fling in either direction, pauses on hover, and skips autoplay under `prefers-reduced-motion`. The `✦` Unicode separator was replaced with a plain CSS dot (matching the existing `badgeDot` visual language) rather than an icon, since it's a non-semantic divider. Removed the now-unused global `@keyframes marquee` from `index.css`.
+
+**Verified:** `npm run build` compiles clean; dev server boots without errors; confirmed `DoorOpen`/`BadgeCheck`/`Scissors` are real lucide-react exports and `useInView`/`useMotionValue`/`useSpring`/`useReducedMotion` are real `framer-motion` exports (re-exported via `motion/react`). Drag/wrap direction math was traced by hand, not click-tested — no browser automation tool was available in this session to interactively verify hover/drag/count-up in a rendered page.
+
 ## 2026-06-30 — Full-Stack Schema Migration (Supabase)
 
 Summary: Designed and applied complete production database schema for Casa Barbero.

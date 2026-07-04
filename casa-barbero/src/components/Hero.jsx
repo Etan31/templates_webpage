@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { BadgeCheck, DoorOpen, Scissors } from 'lucide-react'
 import styles from './Hero.module.css'
+
+const TRUST_ITEMS = [
+  { Icon: DoorOpen,   label: 'Walk-ins Welcome' },
+  { Icon: BadgeCheck, label: 'Honest Prices' },
+  { Icon: Scissors,   label: 'Expert Barbers' },
+]
 
 export default function Hero() {
   const [ready, setReady] = useState(false)
@@ -51,18 +58,12 @@ export default function Hero() {
         </p>
 
         <div {...anim('0.85s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.trust}`}>
-          <span className={styles.trustItem}>
-            <span className={styles.trustDot} />
-            Walk-ins Welcome
-          </span>
-          <span className={styles.trustItem}>
-            <span className={styles.trustDot} />
-            Honest Prices
-          </span>
-          <span className={styles.trustItem}>
-            <span className={styles.trustDot} />
-            Expert Barbers
-          </span>
+          {TRUST_ITEMS.map(({ Icon, label }) => (
+            <span className={styles.trustItem} key={label}>
+              <Icon className={styles.trustIcon} size={15} strokeWidth={1.75} aria-hidden="true" />
+              {label}
+            </span>
+          ))}
         </div>
 
         <div {...anim('0.95s')} className={`${styles.item} ${ready ? styles.animate : ''} ${styles.actions}`}>
