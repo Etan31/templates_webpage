@@ -156,7 +156,7 @@ export default function BookingPage() {
           </div>
 
           <div className={styles.ctaMeta}>
-            <span>+63 917 123 4567</span>
+            <span>+63 912 345 6789</span>
             <span className={styles.ctaDivider}>·</span>
             <span>123 Rizal St., Poblacion, Manila</span>
             <span className={styles.ctaDivider}>·</span>

@@ -6,5 +6,5 @@ export const ADMIN_LOGIN_URL =
   import.meta.env.VITE_ADMIN_URL || "http://localhost:5174/admin/login";
 
 // Concierge phone — shown in the booking banner and nav drawer.
-export const CONCIERGE_PHONE = "+63 917 123 4567";
+export const CONCIERGE_PHONE = "+63912 345 6789";
 export const CONCIERGE_TEL = "+639171234567";

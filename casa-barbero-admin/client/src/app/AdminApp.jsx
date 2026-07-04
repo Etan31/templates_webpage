@@ -77,7 +77,7 @@ export default function AdminApp({ path, onLogout }) {
         <AnimatePresence mode="wait">
           <motion.div key={page} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}>
             <Suspense fallback={null}>
-            {page === "dashboard" && <DashboardPage data={dashboard} bookings={bookings} />}
+            {page === "dashboard" && <DashboardPage data={dashboard} bookings={bookings} transactions={payments} dailyRevenue={dailyRevenue} barbers={barbers} settings={settings} />}
             {page === "schedule" && <SchedulePage bookings={bookings} barbers={barbers} catalog={catalog} setBookings={setBookings} setCatalog={setCatalog} />}
             {page === "bookings" && <BookingsPage bookings={bookings} barbers={barbers} setBookings={setBookings} />}
             {page === "barbers" && <BarbersPage barbers={barbers} catalog={catalog} setBarbers={setBarbers} setCatalog={setCatalog} />}

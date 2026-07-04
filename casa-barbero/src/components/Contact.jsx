@@ -1,36 +1,45 @@
-import { useState } from 'react'
-import useInView from '../hooks/useInView'
-import styles from './Contact.module.css'
+import { useState } from "react";
+import useInView from "../hooks/useInView";
+import styles from "./Contact.module.css";
 
 export default function Contact() {
-  const [ref, inView] = useInView()
-  const [sent, setSent] = useState(false)
+  const [ref, inView] = useInView();
+  const [sent, setSent] = useState(false);
 
   function handleSubmit(e) {
-    e.preventDefault()
-    setSent(true)
-    setTimeout(() => setSent(false), 3000)
+    e.preventDefault();
+    setSent(true);
+    setTimeout(() => setSent(false), 3000);
   }
 
   return (
-    <section id="contact" className={styles.section} aria-labelledby="contact-heading">
+    <section
+      id="contact"
+      className={styles.section}
+      aria-labelledby="contact-heading"
+    >
       <div className={styles.inner}>
-        <div ref={ref} className={`${styles.content} ${inView ? styles.visible : ''}`}>
+        <div
+          ref={ref}
+          className={`${styles.content} ${inView ? styles.visible : ""}`}
+        >
           <div className={styles.grid}>
-
             <div className={styles.formSide}>
               <span className={styles.eyebrow}>Get in Touch</span>
               <h2 id="contact-heading" className={styles.heading}>
                 Drop us a <em className={styles.accent}>message.</em>
               </h2>
               <p className={styles.sub}>
-                Questions, special requests, or group bookings — we'll get back to you within the day.
+                Questions, special requests, or group bookings — we'll get back
+                to you within the day.
               </p>
 
               <form onSubmit={handleSubmit} className={styles.form} noValidate>
                 <div className={styles.row2}>
                   <div className={styles.field}>
-                    <label htmlFor="contact-name" className={styles.srOnly}>Your name</label>
+                    <label htmlFor="contact-name" className={styles.srOnly}>
+                      Your name
+                    </label>
                     <input
                       id="contact-name"
                       type="text"
@@ -40,7 +49,9 @@ export default function Contact() {
                     />
                   </div>
                   <div className={styles.field}>
-                    <label htmlFor="contact-phone" className={styles.srOnly}>Phone / WhatsApp</label>
+                    <label htmlFor="contact-phone" className={styles.srOnly}>
+                      Phone / WhatsApp
+                    </label>
                     <input
                       id="contact-phone"
                       type="tel"
@@ -52,7 +63,9 @@ export default function Contact() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="contact-message" className={styles.srOnly}>Message</label>
+                  <label htmlFor="contact-message" className={styles.srOnly}>
+                    Message
+                  </label>
                   <textarea
                     id="contact-message"
                     placeholder="How can we help? (preferred service, schedule, etc.)"
@@ -63,14 +76,15 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className={`${styles.submit} ${sent ? styles.submitSent : ''}`}
+                  className={`${styles.submit} ${sent ? styles.submitSent : ""}`}
                 >
-                  {sent ? 'Message Sent ✓' : 'Send Message'}
+                  {sent ? "Message Sent ✓" : "Send Message"}
                 </button>
               </form>
 
               <p className={styles.altContact}>
-                Or reach us directly: <a href="tel:+639171234567">+63 917 123 4567</a>
+                Or reach us directly:{" "}
+                <a href="tel:+639171234567">+63912 345 6789</a>
               </p>
             </div>
 
@@ -82,10 +96,9 @@ export default function Contact() {
                 loading="lazy"
               />
             </div>
-
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

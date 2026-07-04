@@ -1,22 +1,24 @@
-import { Link } from 'react-router-dom'
-import useInView from '../hooks/useInView'
-import styles from './Hours.module.css'
+import { Link } from "react-router-dom";
+import useInView from "../hooks/useInView";
+import styles from "./Hours.module.css";
 
 const HOURS = [
-  { day: 'Monday – Friday', time: '9:00 AM — 8:00 PM', closed: false },
-  { day: 'Saturday',        time: '9:00 AM — 6:00 PM', closed: false },
-  { day: 'Sunday',          time: 'Closed',             closed: true  },
-]
+  { day: "Monday – Friday", time: "9:00 AM — 8:00 PM", closed: false },
+  { day: "Saturday", time: "9:00 AM — 6:00 PM", closed: false },
+  { day: "Sunday", time: "Closed", closed: true },
+];
 
 export default function Hours() {
-  const [ref, inView] = useInView()
+  const [ref, inView] = useInView();
 
   return (
     <section className={styles.section} aria-label="Opening hours and location">
       <div className={styles.inner}>
-        <div ref={ref} className={`${styles.content} ${inView ? styles.visible : ''}`}>
+        <div
+          ref={ref}
+          className={`${styles.content} ${inView ? styles.visible : ""}`}
+        >
           <div className={styles.grid}>
-
             <aside className={styles.card}>
               <span className={styles.eyebrow}>Open House</span>
               <h2 className={styles.cardHeading}>Working Hours</h2>
@@ -25,7 +27,11 @@ export default function Hours() {
                 {HOURS.map(({ day, time, closed }) => (
                   <div key={day} className={styles.scheduleRow}>
                     <dt className={styles.scheduleDay}>{day}</dt>
-                    <dd className={closed ? styles.scheduleClosed : styles.scheduleTime}>
+                    <dd
+                      className={
+                        closed ? styles.scheduleClosed : styles.scheduleTime
+                      }
+                    >
                       {time}
                     </dd>
                   </div>
@@ -34,15 +40,18 @@ export default function Hours() {
 
               <h3 className={styles.visitHeading}>Find Us</h3>
               <address className={styles.address}>
-                <a href="tel:+639171234567">+63 917 123 4567</a>
+                <a href="tel:+639171234567">+63912 345 6789</a>
                 <br />
                 <a href="mailto:hello@casabarbero.ph">hello@casabarbero.ph</a>
                 <br />
-                123 Rizal St., Poblacion<br />
+                123 Rizal St., Poblacion
+                <br />
                 Manila, Philippines
               </address>
 
-              <Link to="/booking" className={styles.bookBtn}>View Services &amp; Book</Link>
+              <Link to="/booking" className={styles.bookBtn}>
+                View Services &amp; Book
+              </Link>
             </aside>
 
             <div className={styles.imgWrap} aria-hidden="true">
@@ -54,10 +63,9 @@ export default function Hours() {
               />
               <div className={styles.imgOverlay} />
             </div>
-
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

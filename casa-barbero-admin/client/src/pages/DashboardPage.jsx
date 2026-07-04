@@ -6,19 +6,14 @@ import { formatPeso, relativeDay, toDisplayTime } from "../utils/formatters.js";
 import { Badge, PageHeader, PanelTitle, Payment, Pill } from "../components/ui/index.jsx";
 import { lineData, lineOptions } from "../lib/charts.js";
 import { navigate } from "../services/navigation.js";
+import { computeDashboard } from "../utils/dashboardMetrics.js";
 
-export default function Dashboard({ data, bookings }) {
-  const sparkline = data?.sparkline || [
-    { day: "Mon", date: "Jun 22", amount: 6200 },
-    { day: "Tue", date: "Jun 23", amount: 8200 },
-    { day: "Wed", date: "Jun 24", amount: 5200 },
-    { day: "Thu", date: "Jun 25", amount: 10650 },
-    { day: "Fri", date: "Jun 26", amount: 12400 },
-    { day: "Sat", date: "Jun 27", amount: 15800 },
-    { day: "Sun", date: "Jun 28", amount: 11800 }
-  ];
-  const kpis = data?.kpis || { todayBookings: 18, weekRevenue: 48650, pending: 5, cancellationsMtd: 7 };
-  const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+export default function Dashboard({ data, bookings, transactions, dailyRevenue, barbers, settings }) {
+  const metrics = useMemo(
+    () => computeDashboard({ bookings, transactions, dailyRevenue, barbers, data }),
+    [bookings, transactions, dailyRevenue, barbers, data]
+  );
+  const { kpis, secondary, topBarbers, topServices, sparkline } = metrics;
 
   // Real upcoming list: future, non-cancelled, chronological. Falls back to server data when bookings unloaded.
   const upcoming = useMemo(() => {
@@ -30,15 +25,24 @@ export default function Dashboard({ data, bookings }) {
     return list.slice(0, 6);
   }, [bookings, data]);
 
+  const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const shopName = settings?.shopProfile?.name;
+
   return (
     <section>
-      <PageHeader title="Dashboard" meta={todayLabel} />
+      <PageHeader title="Dashboard" meta={shopName ? `${shopName} · ${todayLabel}` : todayLabel} />
       <div className="kpi-grid">
-        <Kpi title="Today's Bookings" value={kpis.todayBookings} detail="across all barbers" trend="+12%" tone="up" />
-        <Kpi title="This Week's Revenue" value={formatPeso(kpis.weekRevenue)} detail="vs ₱45,030 last week" trend="+8%" tone="up" />
-        <Kpi title="Pending Confirmations" value={kpis.pending} detail="awaiting client response" trend="amber" dot />
-        <Kpi title="Cancellations (MTD)" value={kpis.cancellationsMtd} detail="this month" trend="-3%" tone="down" />
+        <Kpi title="Today's Bookings" value={kpis.todayBookings} detail={`vs ${kpis.lastWeekToday} same day last week`} trend={kpis.todayTrend?.label} tone={kpis.todayTrend?.tone} />
+        <Kpi title="This Week's Revenue" value={formatPeso(kpis.weekRevenue)} detail={`vs ${formatPeso(kpis.prevWeekRevenue)} last week`} trend={kpis.weekTrend?.label} tone={kpis.weekTrend?.tone} />
+        <Kpi title="Pending Confirmations" value={kpis.pending} detail="awaiting confirmation" dot />
+        <Kpi title="Cancellations (MTD)" value={kpis.cancellationsMtd} detail={`vs ${kpis.cancelledPrevMtd} last month`} />
       </div>
+      <StatStrip items={[
+        { label: "Avg Ticket", value: formatPeso(secondary.avgTicket) },
+        { label: "Outstanding", value: formatPeso(secondary.outstanding), warn: secondary.outstanding > 0 },
+        { label: "Clients This Week", value: secondary.uniqueClients },
+        { label: "Active Barbers", value: secondary.activeBarbers }
+      ]} />
       <div className="dashboard-grid">
         <MiniCalendar bookings={bookings} />
         <UpcomingList items={upcoming} />
@@ -47,20 +51,72 @@ export default function Dashboard({ data, bookings }) {
         <PanelTitle title="Revenue · Last 7 Days" value={formatPeso(kpis.weekRevenue)} />
         <Line data={lineData(sparkline)} options={lineOptions} />
       </section>
+      <div className="insights-grid">
+        <RankPanel
+          title="Top Barbers · This Month"
+          emptyLabel="No revenue recorded yet this month."
+          rows={topBarbers.map((b) => ({ key: b.name, label: b.name, value: formatPeso(b.revenue), sub: `${b.count} booking${b.count !== 1 ? "s" : ""}`, weight: b.revenue, color: b.color }))}
+        />
+        <RankPanel
+          title="Popular Services · This Month"
+          emptyLabel="No bookings recorded yet this month."
+          rows={topServices.map((s) => ({ key: s.name, label: s.name, value: s.count, sub: formatPeso(s.revenue), weight: s.count }))}
+        />
+      </div>
     </section>
   );
 }
 
 function Kpi({ title, value, detail, trend, tone, dot }) {
+  const showTrend = trend && trend !== "amber";
   return (
     <article className="kpi-card">
       <p>{dot ? <span className="amber-dot" /> : null}{title}</p>
       <div>
         <strong>{value}</strong>
-        {trend !== "amber" ? <span className={`trend ${tone}`}>{tone === "down" ? "↓" : "↑"} {trend.replace(/[+-]/, "")}</span> : null}
+        {showTrend ? <span className={`trend ${tone || ""}`}>{tone === "down" ? "↓" : "↑"} {String(trend).replace(/[+-]/, "")}</span> : null}
       </div>
-      <small>{detail}</small>
+      {detail ? <small>{detail}</small> : null}
     </article>
+  );
+}
+
+function StatStrip({ items }) {
+  return (
+    <div className="stat-strip">
+      {items.map((item) => (
+        <div className="stat-item" key={item.label}>
+          <span>{item.label}</span>
+          <strong className={item.warn ? "warn" : ""}>{item.value}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RankPanel({ title, rows, emptyLabel }) {
+  const max = rows.reduce((peak, row) => Math.max(peak, row.weight), 0) || 1;
+  return (
+    <section className="panel">
+      <PanelTitle title={title} />
+      {rows.length ? (
+        <div className="rank-list">
+          {rows.map((row, index) => (
+            <article className="rank-row" key={row.key}>
+              <div>
+                <span className="rank-num">{index + 1}</span>
+                <strong>{row.label}</strong>
+                <em>{row.value}</em>
+              </div>
+              <i style={{ width: `${Math.round((row.weight / max) * 100)}%`, ...(row.color ? { "--bar": row.color } : {}) }} />
+              {row.sub ? <small>{row.sub}</small> : null}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="upcoming-empty"><p>{emptyLabel}</p></div>
+      )}
+    </section>
   );
 }
 

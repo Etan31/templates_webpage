@@ -1,5 +1,24 @@
 # Activity Log
 
+## 2026-07-04 — Admin dashboard: full data-driven overview (real KPIs, stats strip, insight panels)
+
+Summary: Extended the dashboard beyond the Upcoming panel so the whole page reflects real shop data on login. Replaced the hardcoded KPI trend badges (`+12%`, `+8%`, `-3%`, `vs ₱45,030 last week`) with real week-over-week / month-to-date computations, added a secondary stats strip and two revenue insight panels (Top Barbers, Popular Services).
+
+**Decisions:**
+- Client-side aggregation from data already fetched by `AdminApp` (bookings, payment transactions, 30-day dailyRevenue, barbers, settings) — no backend/API/DB changes, no Fly.io deploy risk. Mirrors how `PaymentsPage` already aggregates. `AdminApp` now passes those props to `DashboardPage` (previously only `data` + `bookings`).
+- Panels chosen with the user: Top Barbers + Popular Services (revenue-focused). Actionable info (pending, outstanding ₱) surfaced via KPIs + the stats strip rather than a separate "Needs Attention" panel.
+- KPI trends: `pending` keeps its amber dot (no badge); `cancellations` shows the comparison in detail text with NO colored badge on purpose — the shared `Kpi` couples arrow direction and color to `tone`, and green/red would misread for "fewer cancellations is good."
+
+**Changes:**
+- `utils/dashboardMetrics.js` (NEW) — one pure `computeDashboard({ bookings, transactions, dailyRevenue, barbers, data })`. Monday-first week via `(getDay()+6)%7`; YYYY-MM-DD string comparisons for day/week/month windows; returns real `kpis` (+ trends), `secondary` (avgTicket, outstanding, uniqueClients, activeBarbers), `topBarbers` (txns this month by revenue), `topServices` (bookings this month by count), and a 7-day `sparkline`. Falls back to server `data.kpis`/`data.sparkline` when raw arrays are empty.
+- `pages/DashboardPage.jsx` — consumes metrics; header shows shop name from `settings`; KPI grid fed real values/trends; new `StatStrip` + `RankPanel` (ranked bar list) components; revenue chart fed computed sparkline.
+- `assets/styles/dashboard.css` — `.stat-strip` (hairline-divided compact stats), `.insights-grid` (2-col ≥1024 → 1-col), `.rank-list`/`.rank-row` (dashboard-local mirror of payments' `.top-services`, bar color via `--bar` custom prop). Tightened KPI→strip gap; `--gap-section` rhythm across all sections.
+- `app/AdminApp.jsx` — pass `transactions`/`dailyRevenue`/`barbers`/`settings` to the dashboard.
+
+**Reuse note:** did NOT reuse payments.css `.top-services` from the dashboard — it is page-scoped/lazy and wouldn't be loaded on the dashboard (CSS-leak lesson). Added a dashboard-local `.rank-list` instead.
+
+**Verified:** `vite build client` compiles clean (DashboardPage chunk 5.6→9.8 kB). Confirmed no new CSS class-name collisions across sibling stylesheets before adding `.stat-strip`/`.insights-grid`/`.rank-*`. Traced metric math for week/month/MTD boundaries, divide-by-zero (`pctTrend` returns null/"new"), and empty-array fallbacks. Not click-tested in a live browser (no Supabase login/session driven this session).
+
 ## 2026-07-04 — Admin dashboard: data-driven Upcoming panel + dynamic mini-calendar
 
 Summary: Reworked the admin `DashboardPage` so the Upcoming Bookings panel and mini-calendar reflect real data instead of hardcoded placeholders, and surface the money/schedule context a shop owner needs. Applied ui-ux-pro-max guidance (visual hierarchy, tabular figures, empty states, 44px targets, 4/8px spacing rhythm) within the existing dark/gold theme.
