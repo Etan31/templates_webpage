@@ -1,5 +1,22 @@
 # Activity Log
 
+## 2026-07-04 — Admin dashboard: data-driven Upcoming panel + dynamic mini-calendar
+
+Summary: Reworked the admin `DashboardPage` so the Upcoming Bookings panel and mini-calendar reflect real data instead of hardcoded placeholders, and surface the money/schedule context a shop owner needs. Applied ui-ux-pro-max guidance (visual hierarchy, tabular figures, empty states, 44px targets, 4/8px spacing rhythm) within the existing dark/gold theme.
+
+**Decisions:**
+- Upcoming list is now client-derived from `bookings` (future, non-cancelled, sorted ascending, first 6) with `data.upcoming` from `dashboardService` as fallback when bookings are unloaded. Fixes a real bug: it was fed `bookings.slice(0,6)` off a `created_at`-DESC list, so "Upcoming" could show past/cancelled bookings out of order.
+- Row layout: rich 2-line rows grouped by day (Today/Tomorrow/"Thu, Jul 9") — chosen over compact single-line and card-tile options.
+- Mini-calendar rebuilt to be dynamic (current real month, Monday-first offset `(getDay()+6)%7`, muted spillover days, real today marker, non-cancelled counts keyed by full ISO date). Kept single-month view with no month-nav buttons to avoid the dead-nav-button pitfall.
+
+**Changes:**
+- `pages/DashboardPage.jsx` — dynamic header date; `upcoming` memo; `UpcomingList` with day-group subheaders, per-row time+duration / client+service+barber `Badge` / price+`Payment`+`Pill`, panel-title summary (`count · ₱total`), and a `CalendarClock` empty state; `MiniCalendar` rewritten as a real month heatmap.
+- `utils/formatters.js` — added `relativeDay(isoDate)` (Today / Tomorrow / "Thu, Jul 9").
+- `assets/styles/dashboard.css` — replaced the 4-column `.booking-line` with a 3-zone grid (`.bl-time`/`.bl-main`/`.bl-right`), added `.day-label`, `.bl-service` (scoped so it doesn't override the barber `.badge` color/size), `.upcoming-empty`; standardized section spacing to `--gap-section`; rewrote the ≤479px rules for the new structure.
+- `assets/styles/global.css` — added `--gap-section: clamp(22px, 3vw, 32px)`.
+
+**Verified:** `vite build client` compiles clean (twice). Confirmed no CSS class-name collisions in sibling page stylesheets before adding `upcoming-*`/`bl-*`/`day-*`, and no dead `.booking-line` descendant selectors remain after the structure change. Caught and fixed a specificity bug where `.bl-sub span` would have overridden the barber badge's color/size (scoped to `.bl-service`). Not click-tested in a live browser — no runtime login/Supabase session was driven this session.
+
 ## 2026-07-04 — Customer landing page: professional icons, CountUp stats, interactive marquee
 
 Summary: Replaced decorative Unicode glyphs with vector icons and added motion polish to casa-barbero's Hero/Stats/Marquee sections to make the landing page feel more premium and conversion-focused.

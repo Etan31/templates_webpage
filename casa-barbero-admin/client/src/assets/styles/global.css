@@ -28,6 +28,7 @@
   --pad-card: clamp(16px, 1.8vw, 24px);
   --pad-card-x: clamp(16px, 2.2vw, 28px);
   --gap-grid: clamp(12px, 1.6vw, 20px);
+  --gap-section: clamp(22px, 3vw, 32px);
   --content-max: 1480px;
 }
 

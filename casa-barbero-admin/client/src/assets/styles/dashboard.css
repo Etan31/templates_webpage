@@ -2,14 +2,15 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--gap-grid);
-  margin-bottom: 28px;
+  margin-bottom: var(--gap-section);
 }
 
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
   gap: var(--gap-grid);
-  margin-bottom: 28px;
+  margin-bottom: var(--gap-section);
+  align-items: start;
 }
 
 .weekdays,
@@ -77,42 +78,148 @@
 
 .month-dots button:hover em { display: block; }
 
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 4px 8px;
+}
+
+.day-group:first-child .day-label { padding-top: 2px; }
+
+.day-label span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.day-label i {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: rgba(201, 168, 76, 0.14);
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  font-style: normal;
+}
+
 .booking-line {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  padding: 12px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 4px;
+  gap: 14px;
+  min-height: 56px;
+  padding: 10px 6px;
+  border-radius: 7px;
   transition: background 150ms;
 }
 
+.booking-line + .booking-line { border-top: 1px solid rgba(255, 255, 255, 0.04); }
+
 @media (hover: hover) and (pointer: fine) {
-  .booking-line:hover { background: rgba(255, 255, 255, 0.025); }
+  .booking-line:hover { background: rgba(255, 255, 255, 0.03); }
 }
 
-.booking-line time {
+.bl-time {
+  display: grid;
+  gap: 2px;
+}
+
+.bl-time time {
   color: var(--gold);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
-.booking-line strong,
-.booking-line span {
-  display: block;
+.bl-time span {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
 
-.booking-line div span {
+.bl-main {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bl-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.bl-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bl-service {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--muted);
   font-size: 12px;
 }
 
-.booking-line div strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.bl-right {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  text-align: right;
+}
+
+.bl-right b {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.bl-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bl-tags .payment { font-size: 11px; }
+
+.upcoming-empty {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: 44px 16px;
+  text-align: center;
+}
+
+.upcoming-empty svg { color: var(--muted); opacity: 0.55; }
+
+.upcoming-empty p {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.upcoming-empty span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .chart-panel { height: 235px; }
@@ -142,10 +249,12 @@
   .month-dots { gap: 4px; }
 
   .booking-line {
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    gap: 8px;
-    padding: 12px 4px;
+    gap: 10px;
+    padding: 10px 2px;
   }
 
-  .booking-line time { white-space: nowrap; }
+  .bl-tags {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
