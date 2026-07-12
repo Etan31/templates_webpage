@@ -1,0 +1,246 @@
+/* ============================================================
+   Monarch — global tokens, reset, and shared primitives
+   Palette: warm off-white, matte black, metallic gold/tan
+   Component-specific styling lives in colocated CSS Modules.
+   ============================================================ */
+:root {
+  --paper: #f6f3ee;
+  --paper-2: #efeae1;
+  --black: #141210;
+  --ink: #211d18;
+  --gold: #b8935a;
+  --gold-soft: #c9a878;
+  --gold-deep: #9c7940;
+  --card-dark: #1a1512;
+  --muted: #726c62;
+  --line: rgba(20, 18, 16, 0.12);
+  --line-gold: rgba(184, 147, 90, 0.4);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Jost', system-ui, -apple-system, sans-serif;
+  --script: 'Sacramento', cursive;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  font-weight: 300;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  color: var(--black);
+}
+a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+a:hover {
+  color: var(--gold);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* ---------- Layout container ---------- */
+.container {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ---------- Section scaffolding ---------- */
+.pad {
+  padding: 130px 0;
+}
+.pad-sm {
+  padding: 96px 0;
+}
+.dark {
+  background: var(--black);
+  color: #fff;
+}
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4 {
+  color: #fff;
+}
+.paper-2 {
+  background: var(--paper-2);
+}
+
+/* ---------- Shared typography primitives ---------- */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.eyebrow::before {
+  content: '';
+  width: 30px;
+  height: 1px;
+  background: var(--gold);
+}
+.eyebrow.center {
+  justify-content: center;
+}
+.eyebrow.soft {
+  color: var(--gold-soft);
+}
+.eyebrow.center::after {
+  content: '';
+  width: 30px;
+  height: 1px;
+  background: var(--gold);
+}
+.script {
+  font-family: var(--script);
+  color: var(--gold);
+  font-size: clamp(30px, 3.6vw, 46px);
+  line-height: 1;
+  display: block;
+  margin-bottom: 6px;
+}
+.h-sec {
+  font-size: clamp(32px, 4.2vw, 54px);
+}
+.head-c {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 68px;
+}
+.lead {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+  max-width: 520px;
+}
+.dark .lead {
+  color: rgba(255, 255, 255, 0.72);
+}
+/* Centered lead under a section heading */
+.head-c .lead {
+  margin: 18px auto 0;
+}
+/* Centered call-to-action beneath a card grid */
+.center-cta {
+  text-align: center;
+  margin-top: 52px;
+}
+
+/* ---------- Grid helpers ---------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 26px;
+}
+
+/* ---------- Reveal on scroll ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.9s var(--ease),
+    transform 0.9s var(--ease);
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+[data-d='1'] {
+  transition-delay: 0.08s;
+}
+[data-d='2'] {
+  transition-delay: 0.16s;
+}
+[data-d='3'] {
+  transition-delay: 0.24s;
+}
+[data-d='4'] {
+  transition-delay: 0.32s;
+}
+[data-d='5'] {
+  transition-delay: 0.4s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Responsive — shared structural breakpoints
+   (component modules add their own where needed)
+   ============================================================ */
+@media (max-width: 1080px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 820px) {
+  .pad {
+    padding: 88px 0;
+  }
+  .pad-sm {
+    padding: 66px 0;
+  }
+  .container {
+    padding: 0 26px;
+  }
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .container {
+    padding: 0 20px;
+  }
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
