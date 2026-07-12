@@ -1,0 +1,119 @@
+.pcard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 44px 38px 40px;
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform 0.5s var(--ease),
+    box-shadow 0.5s var(--ease),
+    border-color 0.5s var(--ease);
+  position: relative;
+}
+.pcard:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow);
+}
+.featured {
+  background: var(--black);
+  color: #fff;
+  border-color: var(--gold);
+}
+.ribbon {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  background: var(--gold);
+  color: var(--black);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 6px 12px;
+}
+.name {
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+.featured .name {
+  color: var(--gold-soft);
+}
+.price {
+  font-family: var(--serif);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.price b {
+  font-size: 56px;
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1;
+}
+.featured .price b {
+  color: #fff;
+}
+.cur {
+  font-size: 26px;
+  color: var(--gold);
+}
+.per {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-left: 4px;
+}
+.featured .per {
+  color: rgba(255, 255, 255, 0.6);
+}
+.dur {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.featured .dur {
+  color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 36px;
+  flex: 1;
+}
+.list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--ink);
+}
+.featured .list li {
+  color: rgba(255, 255, 255, 0.82);
+}
+.list svg {
+  width: 17px;
+  height: 17px;
+  color: var(--gold);
+  flex: none;
+  margin-top: 3px;
+}
+.list li.off {
+  color: var(--muted);
+  opacity: 0.55;
+}
+.list li.off svg {
+  color: var(--muted);
+}
