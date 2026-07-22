@@ -4,10 +4,13 @@ import { env } from "../config/env.js";
 
 export const keepaliveRoutes = Router();
 
-// Hit on a schedule by .github/workflows/keepalive.yml so the Supabase free-tier
-// project doesn't auto-pause after 7 days without an API request.
+// Hit on a schedule by .github/workflows/keepalive.yml and a redundant Claude
+// scheduled routine so the Supabase free-tier project doesn't auto-pause after
+// 7 days without an API request. Two independent secrets so a leak of either
+// heartbeat's credential doesn't compromise the other.
 keepaliveRoutes.get("/keepalive", async (req, res) => {
-  if (env.keepaliveSecret && req.headers["x-keepalive-secret"] !== env.keepaliveSecret) {
+  const validSecrets = [env.keepaliveSecret, env.keepaliveSecretClaude].filter(Boolean);
+  if (validSecrets.length && !validSecrets.includes(req.headers["x-keepalive-secret"])) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
